@@ -231,8 +231,17 @@ fn hrp(k: usize, mut period: usize, pattern: &[T]) -> Option<Hrp> {
 
             return Some(Hrp { period: period, len: prefix_len });
         }
+        // [ a b a b x x ]
+        //    \ 
+        //     j  
+        // period == 1; j == 0; k == 3; period += 1;
+        //
+        // [ a b a b x x ]
+        //          \
+        //           j
+        // period == 2; j == 3; k == 3; period += 2;
+        period += j / k + 1;
         j = 0;
-        period += 1;
     }
     println!("Exit  hrp: k={}, no HRP", k);
     None
