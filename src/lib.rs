@@ -195,8 +195,12 @@ impl Hrp {
         Hrp { period, len }
     }
 
+    /// The special position for HRP1(x) with period v
+    /// is the length of v1 ... vi where i is the maximal integer
+    /// where |v1 ... vi| < |HRP2(x)|
+    ///
+    /// Taking |HRP2(x)| to mean the period of HRP2.
     fn special_position(&self, hrp2: &Self) -> usize {
-        //let max = hrp2.len - 1;
         let max = hrp2.period - 1;
         debug_assert!(max >= 1);
         // avoid division in the most common cases
