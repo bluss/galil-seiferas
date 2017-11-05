@@ -293,8 +293,6 @@ fn decompose(k: usize, pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
     loop {
         if let Some(hrp1) = hrp1_opt {
             if let Some(hrp2) = hrp2_opt {
-
-                println!("HRP1={} with prefix length={} and special position={}", Bytestring(&pattern[..hrp1.period]), hrp1.len, hrp1.special_position(&hrp2));
                 j += hrp1.special_position(&hrp2);
 
                 // x' = x[j..]
@@ -316,7 +314,6 @@ fn decompose(k: usize, pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
         }
     }
     let (a, b) = pattern.split_at(j);
-    println!("decomposition is {}, {}", Bytestring(a), Bytestring(b));
     #[cfg(debug_assertions)]
     assert_perfect_decomp(k, (a, b));
     (a, b, hrp1_opt)
@@ -388,15 +385,12 @@ fn search_simple(text: &[T], pattern: &[T], start_pos: &mut usize, hrp1: &Option
     let n = text.len();
     let m = pattern.len();
     //let hrp1 = hrp(GS_K, 1, pattern);
-    println!("search_simple hrp={:?}", hrp1);
-    println!("search_simple text={}, pattern={}", Bytestring(text), Bytestring(pattern));
 
     let (has_scope, scope_l, scope_r) = if let Some(hrp1) = *hrp1 {
         // Scope of the k-HRP1 is [L, R]
         // compute the scope L = |v²|, R = z
         let scope_l = hrp1.period * 2;
         let scope_r = hrp1.len;
-        println!("scope_l={}, scope_r={}", scope_l, scope_r);
         debug_assert!(scope_l <= scope_r);
         (true, scope_l, scope_r)
     } else {
