@@ -284,14 +284,15 @@ fn assert_perfect_decomp(k: usize, input: (&[T], &[T])) {
 /// Decompose `pattern` into two words u, v where u is "short" and v is k-simple.
 ///
 /// k-simple: v has at most one k-HRP; if it exists, it is returned as well.
+///
+/// When *k* >= 3, words satisfy a remarkable combinatorial property:
+/// 
+/// > each pattern p can be decomposed into uv where u is "short" and v is
+/// >  a k-simple word.
+/// 
+/// The composition p = uv is k-perfect iff v is k-simple. and |u| < 2 per(v)
+///
 fn decompose(k: usize, pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
-    // When k >= 3, words satisfy a remarkable combinatorial property:
-    // 
-    //  each pattern p can be decomposed into uv where u is "short" and v is
-    //  a k-simple word.
-    // 
-    // The composition p = uv is k-perfect iff v is k-simple. and |u| < 2per(v)
-    //
 
     debug_assert!(k >= 3);
     let mut j = 0;
