@@ -1,3 +1,37 @@
+
+
+//!
+//! String search in constant space, linear time, for nonorderable alphabets.
+//!
+//! In Rust terms this means we can define the function:
+//!
+//! ```rust
+//! fn find_substring<T>(text: &[T], pattern: &[T]) -> Option<usize>
+//! where T: Eq
+//! {
+//!     // ...
+//! # drop((text, pattern));
+//! # unimplemented!()
+//! }
+//! ```
+//!
+//! and the function computes in **O(n)** time and **O(1)** space.
+//! In the worst case, this algorithm makes **4 n** character comparisons.
+//!
+//! Note that the Crochemore-Perrin ("Two Way" algorithm) is superior if
+//! the alphabet has a linear order.
+//!
+//! # References
+//!
+//! Crochemore-Rytter's description of the Galil-Seiferas algoritm has been
+//! very helpful and it explains how it works in concepts that we could
+//! implement:
+//!
+//! M. Crochemore and W. Rytter,
+//! *Squares, Cubes, and Time-Space Efficient String Searching*,
+//! Algorithmica (1995)
+
+
 #![feature(test)]
 
 #[cfg(test)]
@@ -218,6 +252,9 @@ fn assert_perfect_decomp(k: usize, input: (&[T], &[T])) {
     // ok
 }
 
+/// Decompose `pattern` into two words u, v where u is "short" and v is k-simple.
+///
+/// k-simple: v has at most one k-HRP; if it exists, it is returned as well.
 fn decompose(k: usize, pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
     // When k >= 3, words satisfy a remarkable combinatorial property:
     // 
