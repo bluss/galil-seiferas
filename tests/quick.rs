@@ -162,7 +162,7 @@ fn test_find_regular_str() {
 }
 
 #[test]
-fn test_find_str() {
+fn test_find_short() {
     fn prop(a: Text, b: Short<Text>) -> TestResult {
         let a = &a.0;
         let b = &b[..];
@@ -170,6 +170,15 @@ fn test_find_str() {
         TestResult::from_bool(find(&a, &b) == truth)
     }
     quickcheck(prop as fn(_, _) -> _);
+}
+
+quickcheck! {
+    fn test_find_longer_simple(a: SimpleText, b: SimpleText) -> () {
+        let a = &a.0;
+        let b = &b[..];
+        let truth = a.find(b);
+        assert_eq!(find(&a, &b), truth);
+    }
 }
 
 #[ignore]
@@ -199,7 +208,7 @@ fn test_contains_plus() {
 }
 
 quickcheck! {
-    fn test_find_substrings_simple(a: SimpleText, b: Short<SimpleText>) -> TestResult {
+    fn test_find_substrings_simple(a: SimpleText, b: SimpleText) -> TestResult {
         let a = &a.0;
         let b = &b[..];
         if b.len() == 0 { return TestResult::discard() }
@@ -214,7 +223,7 @@ quickcheck! {
 #[ignore]
 #[test]
 fn test_contains_rev_plus() {
-    fn prop(a: Text, b: Short<Text>) -> TestResult {
+    fn prop(a: Text, b: Text) -> TestResult {
         let a = &a.0;
         let b = &b[..];
         if b.len() == 0 { return TestResult::discard() }
