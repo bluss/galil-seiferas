@@ -296,23 +296,16 @@ fn decompose(k: usize, pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
     debug_assert!(k >= 3);
     let mut j = 0;
     let mut hrp1_opt = hrp(k, 1, pattern);
-    let mut hrp2_opt = hrp1_opt.and_then(|hrp1| hrp(k, hrp1.period * 2, pattern));
     loop {
         if let Some(hrp1) = hrp1_opt {
-            if let Some(hrp2) = hrp2_opt {
+            if let Some(hrp2) = hrp(k, hrp1.period * 2, &pattern[j..]) {
+                // x' = x[j..]
                 j += hrp1.special_position(&hrp2);
 
-                // x' = x[j..]
                 // compute HRP1(x')
-                hrp1_opt = hrp(k, hrp1.period, &pattern[j..]); // use hrp1 period; size is nodecreasing
-                if let Some(hrp1) = hrp1_opt {
-                    //if hrp1.period >= hrp2.period {
-                    // HRP2(x')
-                    hrp2_opt = hrp(k, hrp1.period * 2, &pattern[j..]);
-                    //}
-                } else {
-                    // breaking soon
-                }
+                // size is nondecreasing: so use the HRP1(x) period.
+                hrp1_opt = hrp(k, hrp1.period, &pattern[j..]);
+                // will compute HRP2(x') in the next iteration
             } else {
                 break;
             }
