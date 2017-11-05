@@ -192,8 +192,8 @@ impl Hrp {
     }
 
     fn special_position(&self, hrp2: &Self) -> usize {
-        let max = hrp2.len - 1;
-        //let max = hrp2.period - 1;
+        //let max = hrp2.len - 1;
+        let max = hrp2.period - 1;
         debug_assert!(max >= 1);
         max - max % self.period
     }
@@ -320,9 +320,9 @@ fn test_decompose() {
     let s = b"aaabaaabaaabaabbbb";
     assert_matches!(decompose(3, s), (_, _, None));
     let s = b"abababababababababababcabcabcabcabc";
-    assert_matches!(decompose(3, s), (_, _, Some(Hrp { period: 3, len: 15 })));
+    assert_matches!(decompose(3, s), (_, _, Some(Hrp { period: 2, len: 10 })));
     let s = b"ananananananananan in the face";
-    assert_matches!(decompose(3, s), (_, _, None));
+    assert_matches!(decompose(3, s), (_, _, Some(_)));
 }
 
 const GS_K: usize = 3;
