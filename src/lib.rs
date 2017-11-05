@@ -220,6 +220,9 @@ impl Hrp {
 ///   |---|---|---|---|-|
 ///    HRP(x) period=2, len=9
 ///
+/// Throughout we say HRP1(x) for the first HRP of x, HRP2(x) for the second HRP
+/// of x, etc.
+///
 fn hrp(k: usize, mut period: usize, pattern: &[T]) -> Option<Hrp> {
     println!("Enter hrp: k={}, period={}, pattern={}", k, period, Bytestring(pattern));
     let m = pattern.len();
