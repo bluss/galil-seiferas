@@ -345,8 +345,6 @@ pub fn cube_search(text: &[T], pattern: &[T]) -> Option<usize> {
     let (u, v, hrp1) = decompose(GS_K, pattern);
     let mut pos = 0;
     while let Some(i) = search_simple(&text[u.len()..], v, &mut pos, &hrp1) {
-        println!("search_simple result i={}", i);
-        println!("search_simple result text={}, u={}, v={}", Bytestring(&text[i..]), Bytestring(u), Bytestring(v));
         if text_has_prefix(&text[i..], u, &mut PartialEq::eq) {
             return Some(i);
         }
