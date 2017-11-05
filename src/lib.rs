@@ -318,6 +318,8 @@ fn test_cube_search() {
     test_str!("abbbbbaabab", "bbbbbbab");
     test_str!("abbbbbaabaaaab", "bbbbbbab");
     test_str!("aaaaaabaaab", "aaaaaabaab");
+    test_str!("", "");
+    test_str!("", "aaaaaa");
 }
 
 /// pattern is k-simple which means it has at most one k-HRP
