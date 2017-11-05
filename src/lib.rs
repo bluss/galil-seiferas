@@ -386,9 +386,9 @@ fn search_simple(text: &[T], pattern: &[T], start_pos: &mut usize, hrp1: &Option
     #[cfg(debug_assertions)]
     assert_perfect_decomp(GS_K, (&[], pattern));
     debug_assert!(pattern.len() <= text.len());
+    debug_assert_eq!(hrp(GS_K, 1, pattern), *hrp1);
     let n = text.len();
     let m = pattern.len();
-    //let hrp1 = hrp(GS_K, 1, pattern);
 
     let (has_scope, scope_l, scope_r) = if let Some(hrp1) = *hrp1 {
         // Scope of the k-HRP1 is [L, R]
