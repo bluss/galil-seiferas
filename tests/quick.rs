@@ -89,6 +89,63 @@ impl Arbitrary for SimpleText {
     }
 }
 
+/// Fibonacci word or composed thereof
+///
+/// S0 = 0
+/// S1 = 01
+/// Sn = Sn-1 Sn-2
+macro_attr! {
+    #[derive(Clone, Debug, NewtypeDeref!)]
+    struct FibWord(String);
+}
+
+// The letters of the fib alphabet
+const F0: char = 'a';
+const F1: char = 'b';
+
+const S0: &str = "a";
+const S1: &str = "ab";
+
+impl FibWord {
+    fn new(n: usize) -> Self {
+        let mut f = FibWord(String::new());
+        Self::write(n, &mut f.0);
+        f
+    }
+
+    fn write(n: usize, into: &mut String) {
+        match n {
+            0 => into.push_str(S0),
+            1 => into.push_str(S1),
+            other => {
+                FibWord::write(other - 1, into);
+                FibWord::write(other - 2, into);
+            }
+        }
+    }
+}
+
+#[test]
+fn test_fib_word() {
+    assert_eq!(&*FibWord::new(2), "aba");
+    assert_eq!(&*FibWord::new(4), "abaababa");
+}
+
+impl Arbitrary for FibWord {
+    fn arbitrary<G: qc::Gen>(g: &mut G) -> Self {
+        let n = u8::arbitrary(g) % 20;
+        let mut a = FibWord::new(n as usize);
+        if bool::arbitrary(g) {
+            let n = u8::arbitrary(g) % 10;
+            FibWord::write(n as usize, &mut a.0);
+        }
+        a
+    }
+    fn shrink(&self) -> Box<Iterator<Item=Self>> {
+        Box::new(self.0.shrink().map(FibWord))
+    }
+}
+
 #[derive(Clone, Debug)]
 struct ShortText(String);
 // Half the length of Text on average
@@ -174,6 +231,27 @@ fn test_find_short() {
 
 quickcheck! {
     fn test_find_longer_simple(a: SimpleText, b: SimpleText) -> () {
+        let a = &a.0;
+        let b = &b[..];
+        let truth = a.find(b);
+        assert_eq!(find(&a, &b), truth);
+    }
+
+    fn test_find_fib_in_simple(a: SimpleText, b: FibWord) -> () {
+        let a = &a.0;
+        let b = &b[..];
+        let truth = a.find(b);
+        assert_eq!(find(&a, &b), truth);
+    }
+
+    fn test_find_fib_in_fib(a: FibWord, b: FibWord) -> () {
+        let a = &a.0;
+        let b = &b[..];
+        let truth = a.find(b);
+        assert_eq!(find(&a, &b), truth);
+    }
+
+    fn test_find_simple_in_fib(a: FibWord, b: SimpleText) -> () {
         let a = &a.0;
         let b = &b[..];
         let truth = a.find(b);
