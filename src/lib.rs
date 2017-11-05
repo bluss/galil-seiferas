@@ -27,9 +27,13 @@
 //! very helpful and it explains how it works in concepts that we could
 //! implement:
 //!
-//! M. Crochemore and W. Rytter,
+//! - [CR] M. Crochemore and W. Rytter,
 //! *Squares, Cubes, and Time-Space Efficient String Searching*,
 //! Algorithmica (1995)
+//!
+//! # Implementation Notes
+//!
+//! We use *k* = 3 like [CR] recommend.
 
 
 #![feature(test)]
@@ -388,7 +392,17 @@ fn search_simple(text: &[T], pattern: &[T], start_pos: &mut usize, hrp1: &Option
 
     let (has_scope, scope_l, scope_r) = if let Some(hrp1) = *hrp1 {
         // Scope of the k-HRP1 is [L, R]
-        // compute the scope L = |v²|, R = z
+        // where
+        //  L = |v²| = 2 × period
+        //  R = z = length of prefix
+        //
+        // See Lemma 2 in [CR]:
+        //
+        // Any nonempty prefix u of x satisfies
+        //
+        // per(u) = Li / 2 if |u| is in [Li, Ri] for some i
+        // per(u) > |u| / k if not
+        //
         let scope_l = hrp1.period * 2;
         let scope_r = hrp1.len;
         debug_assert!(scope_l <= scope_r);
