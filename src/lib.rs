@@ -275,7 +275,7 @@ fn test_decompose() {
     assert_matches!(decompose(3, s), (_, _, None));
 }
 
-const GL_SEARCH_K: usize = 3;
+const GS_K: usize = 3;
 
 pub fn cube_search(text: &[T], pattern: &[T]) -> Option<usize> {
     if pattern.len() > text.len() {
@@ -283,7 +283,7 @@ pub fn cube_search(text: &[T], pattern: &[T]) -> Option<usize> {
     } else if pattern.is_empty() {
         return Some(0); // trivial match
     }
-    let (u, v, hrp1) = decompose(GL_SEARCH_K, pattern);
+    let (u, v, hrp1) = decompose(GS_K, pattern);
     let mut pos = 0;
     while let Some(i) = search_simple(&text[u.len()..], v, &mut pos, &hrp1) {
         println!("search_simple result i={}", i);
@@ -326,11 +326,11 @@ fn test_cube_search() {
 fn search_simple(text: &[T], pattern: &[T], start_pos: &mut usize, hrp1: &Option<Hrp>) -> Option<usize> {
     // 
     #[cfg(debug_assertions)]
-    assert_perfect_decomp(GL_SEARCH_K, (&[], pattern));
+    assert_perfect_decomp(GS_K, (&[], pattern));
     debug_assert!(pattern.len() <= text.len());
     let n = text.len();
     let m = pattern.len();
-    //let hrp1 = hrp(GL_SEARCH_K, 1, pattern);
+    //let hrp1 = hrp(GS_K, 1, pattern);
     println!("search_simple hrp={:?}", hrp1);
     println!("search_simple text={}, pattern={}", Bytestring(text), Bytestring(pattern));
 
@@ -361,7 +361,7 @@ fn search_simple(text: &[T], pattern: &[T], start_pos: &mut usize, hrp1: &Option
             j -= scope_l / 2;
         } else {
             j = 0;
-            pos += j / GL_SEARCH_K + 1;
+            pos += j / GS_K + 1;
         }
     }
     *start_pos = pos;
@@ -543,7 +543,7 @@ mod benches {
     use self::test::Bencher;
     use super::cube_search;
     use super::decompose;
-    use super::GL_SEARCH_K;
+    use super::GS_K;
 
     #[test]
     fn test_periodic() {
@@ -560,7 +560,7 @@ mod benches {
         let pattern = "ab".repeat(n);
 
         b.iter(|| {
-            decompose(GL_SEARCH_K, pattern.as_bytes());
+            decompose(GS_K, pattern.as_bytes());
         });
         b.bytes = pattern.len() as u64;
     }
