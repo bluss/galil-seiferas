@@ -199,7 +199,13 @@ impl Hrp {
         //let max = hrp2.len - 1;
         let max = hrp2.period - 1;
         debug_assert!(max >= 1);
-        max - max % self.period
+        // avoid division in the most common cases
+        max - (match self.period {
+            1 => 0,
+            2 => max % 2,
+            3 => max % 3,
+            other => max % other,
+        })
     }
 }
 
