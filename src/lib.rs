@@ -77,6 +77,7 @@ fn not_so_naive<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
     None
 }
 
+#[cfg(test)]
 pub fn gl_scopes(k: usize, pattern: &[u8]) -> Vec<(usize, usize)> {
 
     // Longest prefix z
