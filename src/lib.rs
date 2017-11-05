@@ -199,8 +199,23 @@ impl Hrp {
     }
 }
 
+/// HRP: Highly-repeating-prefix
+///
+/// k-HRP means that the prefix consists of at least k periods.
+///
 /// Find the first k-HRP with period >= `period`; return its period and 
 /// the length of the prefix.
+///
+/// Examples:
+///
+/// x: a a a a b b b
+///   |-|-|-|-|
+///    HRP(x) period=1, len=4
+///
+/// x: a b a b a b a b a c
+///   |---|---|---|---|-|
+///    HRP(x) period=2, len=9
+///
 fn hrp(k: usize, mut period: usize, pattern: &[T]) -> Option<Hrp> {
     println!("Enter hrp: k={}, period={}, pattern={}", k, period, Bytestring(pattern));
     let m = pattern.len();
@@ -225,9 +240,7 @@ fn hrp(k: usize, mut period: usize, pattern: &[T]) -> Option<Hrp> {
 
 #[test]
 fn test_hrp() {
-    let mut s = b"aabaabaabaabbbb";
-    // let mut s = b"aabaabaabaabbbb";
-                    
+    let s = b"aabaabaabaabbbb";
 
     assert_eq!(hrp(2, 1, s), Some(Hrp::from(1, 2)));
     assert_eq!(hrp(2, 2, s), Some(Hrp::from(3, 12)));
