@@ -28,6 +28,9 @@ matches = "0.1"
 
 [features]
 
+[profile.bench]
+debug = true
+
 [package.metadata.docs.rs]
 
 [package.metadata.release]
