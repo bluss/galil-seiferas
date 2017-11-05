@@ -28,6 +28,10 @@ matches = "0.1"
 
 [features]
 
+[profile.dev]
+opt-level = 1
+[profile.test]
+opt-level = 1
 [profile.bench]
 debug = true
 
