@@ -18,8 +18,8 @@
 //! and the function computes in **O(n)** time and **O(1)** space.
 //! In the worst case, this algorithm makes **4 n** character comparisons.
 //!
-//! Note that the Crochemore-Perrin ("Two Way" algorithm) is superior if
-//! the alphabet has a linear order.
+//! Note that the Crochemore-Perrin ("Two Way" algorithm) is much superior if
+//! there is a linear order for the alphabet.
 //!
 //! # References
 //!
