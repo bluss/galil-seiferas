@@ -348,11 +348,16 @@ fn test_decompose() {
 
 const GS_K: usize = 3;
 
+/// This is the Galil-Seiferas string matching algorithm.
+///
+/// If a match exists where `pattern` is a substring of `text`, return the
+/// offset to the start of the match inside `Some(_)`. If not, return `None`.
 pub fn cube_search(text: &[T], pattern: &[T]) -> Option<usize> {
+    // trivial cases; the empty pattern is a match
     if pattern.len() > text.len() {
         return None;
     } else if pattern.is_empty() {
-        return Some(0); // trivial match
+        return Some(0);
     }
     let (u, v, hrp1) = decompose(GS_K, pattern);
     let mut pos = 0;
