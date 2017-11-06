@@ -165,6 +165,14 @@ fn test_hrp() {
     assert_eq!(hrp(2, 4, s), Some(Hrp::from(6, 12)));
 }
 
+/// Return a lower bound for the next prefix period's size.
+///
+/// [GS] corollary says that for distinct prefix periods, p2 > (k - 1) p1.
+#[inline]
+fn next_prefix_period(k: usize, period: usize) -> usize {
+    (k - 1) * period + 1
+}
+
 fn assert_perfect_decomp(k: usize, input: (&[T], &[T])) {
     // require that a decomp x = u v
     // that u is "short" and v is k-simple.
@@ -172,7 +180,7 @@ fn assert_perfect_decomp(k: usize, input: (&[T], &[T])) {
     assert!(k >= 3);
     let (u, v) = input;
     if let Some(hrp1) = hrp(k, 1, v) {
-        if let Some(hrp2) = hrp(k, hrp1.period * 2 + 1, v) {
+        if let Some(hrp2) = hrp(k, next_prefix_period(k, hrp1.period), v) {
             panic!("Factorization u, v = {} , {} is not k-simple because
                     v's {}-HRP1 is {:?} and {}-HRP2 is {:?}",
                     Bytestring(u), Bytestring(v), k, hrp1, k, hrp2);
@@ -200,7 +208,7 @@ fn decompose(k: usize, pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
     let mut hrp1_opt = hrp(k, 1, pattern);
     loop {
         if let Some(hrp1) = hrp1_opt {
-            if let Some(hrp2) = hrp(k, hrp1.period * 2 + 1, &pattern[j..]) {
+            if let Some(hrp2) = hrp(k, next_prefix_period(k, hrp1.period), &pattern[j..]) {
                 // x' = x[j..]
                 j += hrp1.special_position(&hrp2);
 
