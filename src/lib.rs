@@ -53,12 +53,10 @@ mod util;
 use util::Bytestring;
 
 
-fn text_has_prefix<T: Eq, FEq>(text: &[T], pattern: &[T], _f: &mut FEq) -> bool
-    where FEq: FnMut(&T, &T) -> bool
-{
+/// Test if `text` starts with `pattern`.
+fn text_has_prefix<T: Eq>(text: &[T], pattern: &[T]) -> bool {
     debug_assert!(text.len() >= pattern.len());
     text[..pattern.len()] == *pattern
-    //text.iter().zip(pattern).all(move |(ea, eb)| f(ea, eb))
 }
 
 type T = u8;
@@ -239,7 +237,7 @@ pub fn cube_search(text: &[T], pattern: &[T]) -> Option<usize> {
     let (u, v, hrp1) = decompose(GS_K, pattern);
     let mut pos = 0;
     while let Some(i) = search_simple(&text[u.len()..], v, &mut pos, &hrp1) {
-        if text_has_prefix(&text[i..], u, &mut PartialEq::eq) {
+        if text_has_prefix(&text[i..], u) {
             return Some(i);
         }
     }
