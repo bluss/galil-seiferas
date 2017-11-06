@@ -221,8 +221,6 @@ fn next_prefix_period(k: usize, period: usize) -> usize {
 // is k-perfect for k >= 3.
 //
 fn decompose<T: Eq>(k: usize, pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
-
-    debug_assert!(k >= 3);
     let mut j = 0;
     let mut hrp1_opt = hrp(k, 1, pattern);
     loop {
@@ -235,12 +233,10 @@ fn decompose<T: Eq>(k: usize, pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
                 // size is nondecreasing: so use the HRP1(x) period.
                 hrp1_opt = hrp(k, hrp1.period, &pattern[j..]);
                 // will compute HRP2(x') in the next iteration
-            } else {
-                break;
+                continue;
             }
-        } else {
-            break;
         }
+        break;
     }
     let (a, b) = pattern.split_at(j);
     #[cfg(debug_assertions)]
