@@ -1,4 +1,8 @@
 
+// Copyright (c) 2017 Ulrik Sverdrup "bluss"
+// 
+// See Cargo.toml and LICENSE-* files for more details
+
 
 //!
 //! String search in constant space, linear time, for nonorderable alphabets.
