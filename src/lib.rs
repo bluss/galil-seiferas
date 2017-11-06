@@ -428,7 +428,7 @@ mod benches {
 
     const DECOMPOSE_LEN: usize = 50;
     #[bench]
-    fn bench_decompose_ab(b: &mut Bencher) {
+    fn bench_g_decompose_ab(b: &mut Bencher) {
         let period = "ab";
         let pattern = period.repeat(DECOMPOSE_LEN / period.len());
 
@@ -439,7 +439,7 @@ mod benches {
     }
 
     #[bench]
-    fn bench_decompose_aaacargo(b: &mut Bencher) {
+    fn bench_g_decompose_aaacargo(b: &mut Bencher) {
         let period = "aaaaacargo";
         let pattern = period.repeat(DECOMPOSE_LEN / period.len());
 
@@ -452,7 +452,7 @@ mod benches {
     defmac!(haystack n => ("ab".repeat(n - 1) + "bb").repeat(n));
 
     #[bench]
-    fn bench_periodic2_10(b: &mut Bencher) {
+    fn bench_gs_periodic2_10(b: &mut Bencher) {
         let n = 10;
         let pattern = "ab".repeat(n);
         let haystack = haystack!(n);
@@ -464,7 +464,7 @@ mod benches {
     }
 
     #[bench]
-    fn bench_periodic2_50(b: &mut Bencher) {
+    fn bench_gs_periodic2_50(b: &mut Bencher) {
         let n = 50;
         let haystack = haystack!(n);
         let pattern = "ab".repeat(n);
@@ -531,7 +531,7 @@ mod benches {
     const PER_LARGE: usize = 250;
 
     #[bench]
-    fn bench_periodic2_large(b: &mut Bencher) {
+    fn bench_gs_periodic2_large(b: &mut Bencher) {
         let n = PER_LARGE;
         let haystack = haystack!(n);
         let pattern = "ab".repeat(n);
