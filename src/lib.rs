@@ -51,6 +51,7 @@
 
 use std::cmp::max;
 
+#[macro_use]
 mod util;
 use util::Bytestring;
 
