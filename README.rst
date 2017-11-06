@@ -3,6 +3,8 @@ galil-seiferas
 
 **Not published: no docs available**
 
+**Please read the comments in the code**
+
 Please read the `API documentation on docs.rs`__
 
 __ https://docs.rs/galil-seiferas/
