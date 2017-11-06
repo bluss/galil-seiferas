@@ -94,6 +94,14 @@ impl Hrp {
 
 /// HRP: Highly-repeating-prefix
 ///
+/// # Background
+///
+/// A string is *basic* if it is not of the form *a^i* for any word *a* and
+/// integer *i*.
+/// A string z is a *prefix period* of w if it is basic and z^k is a prefix of w.
+///
+/// # k-HRP
+///
 /// k-HRP means that the prefix consists of at least k periods.
 ///
 /// Find the first k-HRP with period >= `period`; return its period and 
