@@ -47,37 +47,11 @@
 #[cfg(test)]
 #[macro_use] extern crate defmac;
 
-use std::fmt;
+use std::cmp::max;
 
-struct Bytestring<'a>(&'a [u8]);
+mod util;
+use util::Bytestring;
 
-#[cfg(not(debug_assertions))]
-macro_rules! println {
-    ($($t:tt)*) => { }
-}
-
-impl<'a> fmt::Display for Bytestring<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for &elt in self.0 {
-            for byte in std::ascii::escape_default(elt) {
-                write!(f, "{}", byte as char)?;
-            }
-        }
-        Ok(())
-    }
-}
-
-#[cfg(test)]
-fn naive_search<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
-    let n = text.len();
-    let m = pattern.len();
-    for i in 0..n - m + 1 {
-        if text[i..i + m] == *pattern {
-            return Some(i);
-        }
-    }
-    None
-}
 
 fn text_has_prefix<T: Eq, FEq>(text: &[T], pattern: &[T], _f: &mut FEq) -> bool
     where FEq: FnMut(&T, &T) -> bool
@@ -86,13 +60,6 @@ fn text_has_prefix<T: Eq, FEq>(text: &[T], pattern: &[T], _f: &mut FEq) -> bool
     text[..pattern.len()] == *pattern
     //text.iter().zip(pattern).all(move |(ea, eb)| f(ea, eb))
 }
-
-#[test]
-fn test_naive() {
-    assert_eq!(naive_search(b"abcabcd", b"abc"), Some(0));
-    assert_eq!(naive_search(b"abcabcd", b"abcd"), Some(3));
-}
-
 
 #[cfg(never)]
 fn not_so_naive<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
