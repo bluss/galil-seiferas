@@ -414,6 +414,7 @@ mod benches {
     use super::gs_find;
     use super::decompose;
     use super::GS_K;
+    use super::util::brute_force_search;
 
     #[test]
     fn test_periodic() {
@@ -447,15 +448,83 @@ mod benches {
         b.bytes = pattern.len() as u64;
     }
 
+    defmac!(haystack n => ("ab".repeat(n - 1) + "bb").repeat(n));
+
     #[bench]
-    fn bench_periodic2(b: &mut Bencher) {
+    fn bench_periodic2_10(b: &mut Bencher) {
         let n = 10;
-        let haystack = ("bb".to_string() + &"ab".repeat(n - 1)).repeat(n);
+        let pattern = "ab".repeat(n);
+        let haystack = haystack!(n);
+
+        b.iter(|| {
+            gs_find(haystack.as_bytes(), pattern.as_bytes())
+        });
+        b.bytes = haystack.len() as u64;
+    }
+
+    #[bench]
+    fn bench_periodic2_50(b: &mut Bencher) {
+        let n = 50;
+        let haystack = haystack!(n);
         let pattern = "ab".repeat(n);
 
 
         b.iter(|| {
             gs_find(haystack.as_bytes(), pattern.as_bytes())
+        });
+        b.bytes = haystack.len() as u64;
+    }
+
+    #[bench]
+    fn bench_brute_periodic2_10(b: &mut Bencher) {
+        let n = 10;
+        let haystack = haystack!(n);
+        let pattern = "ab".repeat(n);
+
+
+        b.iter(|| {
+            brute_force_search(haystack.as_bytes(), pattern.as_bytes())
+        });
+        b.bytes = haystack.len() as u64;
+    }
+
+    #[bench]
+    fn bench_brute_periodic2_50(b: &mut Bencher) {
+        let n = 50;
+        let haystack = haystack!(n);
+        let pattern = "ab".repeat(n);
+
+
+        b.iter(|| {
+            brute_force_search(haystack.as_bytes(), pattern.as_bytes())
+        });
+        b.bytes = haystack.len() as u64;
+    }
+
+    const PER_LARGE: usize = 1000;
+
+    #[bench]
+    fn bench_periodic2_large(b: &mut Bencher) {
+        let n = PER_LARGE;
+        let haystack = haystack!(n);
+        let pattern = "ab".repeat(n);
+
+
+        b.iter(|| {
+            gs_find(haystack.as_bytes(), pattern.as_bytes())
+        });
+        b.bytes = haystack.len() as u64;
+    }
+
+    #[bench]
+    fn bench_brute_periodic2_large(b: &mut Bencher) {
+        let n = PER_LARGE;
+        let haystack = haystack!(n);
+        let pattern = "ab".repeat(n);
+
+
+        b.iter(|| {
+            brute_force_search(haystack.as_bytes(), pattern.as_bytes())
         });
         b.bytes = haystack.len() as u64;
     }
