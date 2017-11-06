@@ -1,0 +1,15 @@
+language: rust
+sudo: false
+matrix:
+  include:
+    - rust: stable
+    - rust: beta
+    - rust: nightly
+branches:
+  only:
+    - master
+script:
+  - |
+      cargo build --verbose --no-default-features &&
+      cargo build --verbose --features "$FEATURES" &&
+      cargo test --verbose --features "$FEATURES"
