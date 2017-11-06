@@ -27,6 +27,7 @@ rand = "0.3.10"
 matches = "0.1"
 
 [features]
+benchmarks = []
 
 [profile.dev]
 opt-level = 1

@@ -42,7 +42,7 @@
 //! We use *k* = 3 like [CR] recommend.
 
 
-#![feature(test)]
+#![cfg_attr(feature = "benchmarks", feature(test))]
 
 #[cfg(test)]
 #[macro_use] extern crate matches;
@@ -407,7 +407,7 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
 }
 
 
-#[cfg(test)]
+#[cfg(all(test, feature = "benchmarks"))]
 mod benches {
     extern crate test;
     use self::test::Bencher;
