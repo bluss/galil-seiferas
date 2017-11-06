@@ -22,12 +22,29 @@ impl<'a> fmt::Display for Bytestring<'a, u8> {
     }
 }
 
+// using slow loop
 #[cfg(test)]
 pub(crate) fn brute_force_search<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
     let n = text.len();
     let m = pattern.len();
+    'outer: for i in 0..n - m + 1 {
+        for j in 0..m {
+            if text[i + j] != pattern[j] {
+                continue 'outer;
+            }
+        }
+        return Some(i);
+    }
+    None
+}
+
+// using memcmp
+#[cfg(test)]
+pub(crate) fn brute_force_fast<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
+    let n = text.len();
+    let m = pattern.len();
     for i in 0..n - m + 1 {
-        if text[i..i + m] == *pattern {
+        if &text[i .. i + m] == pattern {
             return Some(i);
         }
     }
@@ -38,6 +55,8 @@ pub(crate) fn brute_force_search<T: Eq>(text: &[T], pattern: &[T]) -> Option<usi
 fn test_brute_force_search() {
     assert_eq!(brute_force_search(b"abcabcd", b"abc"), Some(0));
     assert_eq!(brute_force_search(b"abcabcd", b"abcd"), Some(3));
+    assert_eq!(brute_force_fast(b"abcabcd", b"abc"), Some(0));
+    assert_eq!(brute_force_fast(b"abcabcd", b"abcd"), Some(3));
 }
 
 
