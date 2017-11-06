@@ -381,16 +381,17 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
         while j < m && pattern[j] == text[pos + j] {
             j += 1;
         }
-        if j == m {
-            *start_pos = pos + 1;
-            return Some(pos);
-        }
+        let has_match = if j == m { Some(pos) } else { None };
         if has_scope && j >= scope_l && j <= scope_r {
             pos += scope_l / 2;
             j -= scope_l / 2;
         } else {
             j = 0;
             pos += j / GS_K + 1;
+        }
+        if let Some(match_pos) = has_match {
+            *start_pos = pos;
+            return Some(match_pos);
         }
     }
     None
