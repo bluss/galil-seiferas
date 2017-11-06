@@ -531,10 +531,22 @@ mod benches {
         println!("{:?}", res);
     }
 
+    const DECOMPOSE_LEN: usize = 50;
     #[bench]
-    fn bench_decompose(b: &mut Bencher) {
-        let n = 10;
-        let pattern = "ab".repeat(n);
+    fn bench_decompose_ab(b: &mut Bencher) {
+        let period = "ab";
+        let pattern = period.repeat(DECOMPOSE_LEN / period.len());
+
+        b.iter(|| {
+            decompose(GS_K, pattern.as_bytes());
+        });
+        b.bytes = pattern.len() as u64;
+    }
+
+    #[bench]
+    fn bench_decompose_aaacargo(b: &mut Bencher) {
+        let period = "aaaaacargo";
+        let pattern = period.repeat(DECOMPOSE_LEN / period.len());
 
         b.iter(|| {
             decompose(GS_K, pattern.as_bytes());
