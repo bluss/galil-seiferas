@@ -500,32 +500,6 @@ pub fn gl_search(text: &[u8], pattern: &[u8]) -> Option<usize> {
 }
 
 
-// more thorough tests in the tests/ directory
-#[test]
-fn basic_test() {
-    let body = "G";
-    let pattern = "GCAGAGAG";
-    let search = cube_search;
-    search(body.as_bytes(), pattern.as_bytes());
-    macro_rules! test {
-        ($body:expr, $pattern:expr) => {
-            assert_eq!($body.find($pattern),
-                       search($body.as_bytes(), $pattern.as_bytes()),
-                       "assertion failed for body={}, pattern={}",
-                       $body, $pattern)
-        }
-    }
-    test!("xyz", "a");
-    test!("xyz", "x");
-    test!("xyz", "y");
-    test!("xyz", "z");
-    test!("substrinstring", "string");
-    test!("abcαaαβγ", "αβ");
-
-    //let result = search(&[1729, 1, 1729, 3, 4], &[1729, 3]);
-    //assert_eq!(result, Some(2));
-}
-
 #[cfg(test)]
 mod benches {
     extern crate test;
