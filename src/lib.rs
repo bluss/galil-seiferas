@@ -27,13 +27,15 @@
 //!
 //! # References
 //!
-//! Crochemore-Rytter's description of the Galil-Seiferas algoritm has been
-//! very helpful and it explains how it works in concepts that we could
-//! implement:
-//!
+//! - [GS] Z. Galil and J. Seiferas,
+//! *Time-Space-Optimal String Matching*,
+//! Journal of Computer and System Sciences (1983)
 //! - [CR] M. Crochemore and W. Rytter,
 //! *Squares, Cubes, and Time-Space Efficient String Searching*,
 //! Algorithmica (1995)
+//!   - Crochemore-Rytter's description of the Galil-Seiferas algoritm has been
+//!   very helpful and it explains how it works in concepts that we could
+//!   implement.
 //!
 //! # Implementation Notes
 //!
@@ -102,7 +104,9 @@ impl Hrp {
 ///
 /// # k-HRP
 ///
-/// k-HRP means that the prefix consists of at least k periods.
+/// k-HRP means that the prefix consists of at least k periods where k is a
+/// “reasonably large integer” (GS use k = 4 but [CR] show that k = 3 works
+/// and is the smallest.)
 ///
 /// Find the first k-HRP with period >= `period`; return its period and 
 /// the length of the prefix.
@@ -168,7 +172,7 @@ fn assert_perfect_decomp(k: usize, input: (&[T], &[T])) {
     assert!(k >= 3);
     let (u, v) = input;
     if let Some(hrp1) = hrp(k, 1, v) {
-        if let Some(hrp2) = hrp(k, hrp1.period * 2, v) {
+        if let Some(hrp2) = hrp(k, hrp1.period * 2 + 1, v) {
             panic!("Factorization u, v = {} , {} is not k-simple because
                     v's {}-HRP1 is {:?} and {}-HRP2 is {:?}",
                     Bytestring(u), Bytestring(v), k, hrp1, k, hrp2);
@@ -196,7 +200,7 @@ fn decompose(k: usize, pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
     let mut hrp1_opt = hrp(k, 1, pattern);
     loop {
         if let Some(hrp1) = hrp1_opt {
-            if let Some(hrp2) = hrp(k, hrp1.period * 2, &pattern[j..]) {
+            if let Some(hrp2) = hrp(k, hrp1.period * 2 + 1, &pattern[j..]) {
                 // x' = x[j..]
                 j += hrp1.special_position(&hrp2);
 
