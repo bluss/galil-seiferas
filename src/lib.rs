@@ -242,6 +242,18 @@ fn test_decompose() {
     assert_matches!(decompose(3, s), (_, _, Some(_)));
 }
 
+#[test]
+fn test_decompose_2() {
+    let period = "aaaaacargo";
+    let pattern = period.repeat(50 / period.len());
+    let pattern = pattern.as_bytes();
+    let (u, v, hrp) = decompose(3, pattern);
+    assert_eq!(u, &pattern[..u.len()]);
+    assert_eq!(v, &pattern[u.len()..]);
+    assert_matches!(hrp, Some(Hrp { period: 10, len: _ }));
+}
+
+
 const GS_K: usize = 3;
 
 /// This is the Galil-Seiferas string matching algorithm.
