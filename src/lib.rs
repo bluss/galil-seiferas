@@ -46,18 +46,37 @@
 
 #[cfg(test)]
 #[macro_use] extern crate matches;
-#[cfg(test)]
 #[macro_use] extern crate defmac;
+extern crate unchecked_index;
 
 use std::cmp::max;
+
+/// Macro for debug-checked and release-unchecked indexing and slicing.
+/// This removes bounds checks in some critial inner loops, where it has
+/// a measurable impact.
+defmac!(get slice, index => unsafe { ::unchecked_index::get_unchecked(slice, index) });
 
 #[macro_use]
 mod util;
 
 /// Test if `text` starts with `pattern`.
 fn text_has_prefix<T: Eq>(text: &[T], pattern: &[T]) -> bool {
-    debug_assert!(text.len() >= pattern.len());
-    text[..pattern.len()] == *pattern
+    get!(text, ..pattern.len()) == pattern
+}
+
+#[test]
+#[should_panic]
+#[cfg(debug_assertions)]
+fn test_has_prefix_oob() {
+    text_has_prefix(b"abc", b"abcd");
+}
+
+#[test]
+fn test_has_prefix() {
+    let data = b"some text goes here";
+    for i in 0..data.len() {
+        assert!(text_has_prefix(data, &data[..i]));
+    }
 }
 
 /// HRP: Highly-repeating-prefix
@@ -97,7 +116,7 @@ fn hrp<T: Eq>(k: usize, mut period: usize, pattern: &[T]) -> Option<Hrp> {
     let m = pattern.len();
     let mut j = 0;
     while period + j < m {
-        while period + j < m && pattern[j] == pattern[period + j] {
+        while period + j < m && get!(pattern, j) == get!(pattern, period + j) {
             j += 1;
         }
         let prefix_len = period + j;
@@ -225,20 +244,20 @@ fn decompose<T: Eq>(k: usize, pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
     let mut hrp1_opt = hrp(k, 1, pattern);
     loop {
         if let Some(hrp1) = hrp1_opt {
-            if let Some(hrp2) = hrp(k, next_prefix_period(k, hrp1.period), &pattern[j..]) {
+            if let Some(hrp2) = hrp(k, next_prefix_period(k, hrp1.period), get!(pattern, j..)) {
                 // x' = x[j..]
                 j += hrp1.special_position(&hrp2);
 
                 // compute HRP1(x')
                 // size is nondecreasing: so use the HRP1(x) period.
-                hrp1_opt = hrp(k, hrp1.period, &pattern[j..]);
+                hrp1_opt = hrp(k, hrp1.period, get!(pattern, j..));
                 // will compute HRP2(x') in the next iteration
                 continue;
             }
         }
         break;
     }
-    let (a, b) = pattern.split_at(j);
+    let (a, b) = (get!(pattern, ..j), get!(pattern, j..));
     #[cfg(debug_assertions)]
     assert_perfect_decomp(k, (a, b));
     (a, b, hrp1_opt)
@@ -308,8 +327,8 @@ pub fn gs_find<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
 
     // find each occurence of v in the text; then check if u precedes it
     let mut pos = 0;
-    while let Some(i) = search_simple(&text[u.len()..], v, &mut pos, &hrp1) {
-        if text_has_prefix(&text[i..], u) {
+    while let Some(i) = search_simple(get!(text, u.len()..), v, &mut pos, &hrp1) {
+        if text_has_prefix(get!(text, i..), u) {
             return Some(i);
         }
     }
@@ -378,7 +397,7 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
     let mut pos = *start_pos;
     let mut j = 0;
     while pos <= n - m {
-        while j < m && pattern[j] == text[pos + j] {
+        while j < m && get!(pattern, j) == get!(text, pos + j) {
             j += 1;
         }
         let has_match = if j == m { Some(pos) } else { None };
