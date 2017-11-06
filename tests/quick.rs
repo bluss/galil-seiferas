@@ -9,7 +9,7 @@ extern crate odds;
 #[macro_use] extern crate newtype_derive;
 
 
-use galil_seiferas::cube_search;
+use galil_seiferas::gs_find;
 use std::ops::Deref;
 
 use odds::string::StrExt;
@@ -167,11 +167,11 @@ impl Arbitrary for ShortText {
 }
 
 pub fn contains(hay: &str, n: &str) -> bool {
-    cube_search(hay.as_bytes(), n.as_bytes()).is_some()
+    gs_find(hay.as_bytes(), n.as_bytes()).is_some()
 }
 
 pub fn find(hay: &str, n: &str) -> Option<usize> {
-    cube_search(hay.as_bytes(), n.as_bytes())
+    gs_find(hay.as_bytes(), n.as_bytes())
 }
 
 pub fn contains_rev(hay: &str, n: &str) -> bool {

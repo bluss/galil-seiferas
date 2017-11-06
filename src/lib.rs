@@ -10,7 +10,7 @@
 //! In Rust terms this means we can define the function:
 //!
 //! ```rust
-//! fn find_substring<T>(text: &[T], pattern: &[T]) -> Option<usize>
+//! fn gs_find<T>(text: &[T], pattern: &[T]) -> Option<usize>
 //! where T: Eq
 //! {
 //!     // ...
@@ -260,7 +260,7 @@ const GS_K: usize = 3;
 ///
 /// If a match exists where `pattern` is a substring of `text`, return the
 /// offset to the start of the match inside `Some(_)`. If not, return `None`.
-pub fn cube_search(text: &[T], pattern: &[T]) -> Option<usize> {
+pub fn gs_find(text: &[T], pattern: &[T]) -> Option<usize> {
     // trivial cases; the empty pattern is a match
     if pattern.len() > text.len() {
         return None;
@@ -278,14 +278,8 @@ pub fn cube_search(text: &[T], pattern: &[T]) -> Option<usize> {
 }
 
 #[test]
-fn test_cube_search() {
-    /*
-    assert_eq!(cube_search(b"abc", b"a"), Some(0));
-    assert_eq!(cube_search(b"abc", b""), Some(0));
-    assert_eq!(cube_search(b"abc", b"x"), None);
-    */
-
-    defmac!(test_str text, pat => assert_eq!(text.find(pat), cube_search(text.as_bytes(), pat.as_bytes())));
+fn test_gs_search() {
+    defmac!(test_str text, pat => assert_eq!(text.find(pat), gs_find(text.as_bytes(), pat.as_bytes())));
     test_str!("abc", "");
     test_str!("abc", "a");
     test_str!("abc", "z");
@@ -504,7 +498,7 @@ pub fn gl_search(text: &[u8], pattern: &[u8]) -> Option<usize> {
 mod benches {
     extern crate test;
     use self::test::Bencher;
-    use super::cube_search;
+    use super::gs_find;
     use super::decompose;
     use super::GS_K;
 
@@ -513,7 +507,7 @@ mod benches {
         let n = 10;
         let haystack = ("bb".to_string() + &"ab".repeat(n - 1)).repeat(n);
         let pattern = "ab".repeat(n);
-        let res = cube_search(haystack.as_bytes(), pattern.as_bytes());
+        let res = gs_find(haystack.as_bytes(), pattern.as_bytes());
         println!("{:?}", res);
     }
 
@@ -548,7 +542,7 @@ mod benches {
 
 
         b.iter(|| {
-            cube_search(haystack.as_bytes(), pattern.as_bytes())
+            gs_find(haystack.as_bytes(), pattern.as_bytes())
         });
         b.bytes = haystack.len() as u64;
     }
