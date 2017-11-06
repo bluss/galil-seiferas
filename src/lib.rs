@@ -397,6 +397,14 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
     None
 }
 
+#[test]
+fn test_periodic() {
+    let n = 10;
+    let haystack = ("ab".repeat(n - 1) + "bb").repeat(n);
+    let pattern = "ab".repeat(n);
+    let res = gs_find(haystack.as_bytes(), pattern.as_bytes());
+    println!("{:?}", res);
+}
 
 #[cfg(all(test, feature = "benchmarks"))]
 mod benches {
@@ -408,16 +416,8 @@ mod benches {
     use super::util::brute_force_search;
     use super::util::brute_force_fast;
 
-    #[test]
-    fn test_periodic() {
-        let n = 10;
-        let haystack = ("bb".to_string() + &"ab".repeat(n - 1)).repeat(n);
-        let pattern = "ab".repeat(n);
-        let res = gs_find(haystack.as_bytes(), pattern.as_bytes());
-        println!("{:?}", res);
-    }
-
     const DECOMPOSE_LEN: usize = 50;
+
     #[bench]
     fn bench_g_decompose_ab(b: &mut Bencher) {
         let period = "ab";
@@ -441,6 +441,7 @@ mod benches {
     }
 
     defmac!(haystack n => ("ab".repeat(n - 1) + "bb").repeat(n));
+    defmac!(haystack_inv n => (String::from("bb") + &"ab".repeat(n - 1)).repeat(n));
 
     #[bench]
     fn bench_gs_periodic2_10(b: &mut Bencher) {
@@ -519,7 +520,7 @@ mod benches {
         b.bytes = haystack.len() as u64;
     }
 
-    const PER_LARGE: usize = 250;
+    const PER_LARGE: usize = 100;
 
     #[bench]
     fn bench_gs_periodic2_large(b: &mut Bencher) {
@@ -556,6 +557,18 @@ mod benches {
 
         b.iter(|| {
             brute_force_fast(haystack.as_bytes(), pattern.as_bytes())
+        });
+        b.bytes = haystack.len() as u64;
+    }
+
+    #[bench]
+    fn bench_twoway_periodic2_large(b: &mut Bencher) {
+        let n = PER_LARGE;
+        let haystack = haystack_inv!(n);
+        let pattern = "ab".repeat(n);
+
+        b.iter(|| {
+            haystack.find(&pattern)
         });
         b.bytes = haystack.len() as u64;
     }
