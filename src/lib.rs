@@ -60,37 +60,6 @@ fn text_has_prefix<T: Eq>(text: &[T], pattern: &[T]) -> bool {
     text[..pattern.len()] == *pattern
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
-/// Highly-repeating-prefix
-struct Hrp {
-    period: usize,
-    len: usize,
-}
-
-impl Hrp {
-    #[cfg(test)]
-    fn from(period: usize, len: usize) -> Self {
-        Hrp { period, len }
-    }
-
-    /// The special position for HRP1(x) with period v
-    /// is the length of v1 ... vi where i is the maximal integer
-    /// where |v1 ... vi| < |HRP2(x)|
-    ///
-    /// Taking |HRP2(x)| to mean the period of HRP2.
-    fn special_position(&self, hrp2: &Self) -> usize {
-        let max = hrp2.period - 1;
-        debug_assert!(max >= 1);
-        // avoid division in the most common cases
-        max - (match self.period {
-            1 => 0,
-            2 => max % 2,
-            3 => max % 3,
-            other => max % other,
-        })
-    }
-}
-
 /// HRP: Highly-repeating-prefix
 ///
 /// # Background
@@ -98,6 +67,9 @@ impl Hrp {
 /// A string is *basic* if it is not of the form *a^i* for any word *a* and
 /// integer *i*.
 /// A string z is a *prefix period* of w if it is basic and z^k is a prefix of w.
+///
+/// For example, given w = "ababababa", z = "ab" is a prefix period.
+/// For example, given w = "aaaaaa", z = "a" is a prefix period and "aa" is not.
 ///
 /// # k-HRP
 ///
@@ -157,30 +129,44 @@ fn test_hrp() {
     assert_eq!(hrp(2, 4, s), Some(Hrp::from(6, 12)));
 }
 
+#[derive(Copy, Clone, Debug, PartialEq)]
+/// Highly-repeating-prefix
+struct Hrp {
+    period: usize,
+    len: usize,
+}
+
+impl Hrp {
+    #[cfg(test)]
+    fn from(period: usize, len: usize) -> Self {
+        Hrp { period, len }
+    }
+
+    /// The special position for HRP1(x) with period v
+    /// is the length of v1 ... vi where i is the maximal integer
+    /// where |v1 ... vi| < |HRP2(x)|
+    ///
+    /// Taking |HRP2(x)| to mean the period of HRP2.
+    fn special_position(&self, hrp2: &Self) -> usize {
+        let max = hrp2.period - 1;
+        debug_assert!(max >= 1);
+        // avoid division in the most common cases
+        max - (match self.period {
+            1 => 0,
+            2 => max % 2,
+            3 => max % 3,
+            other => max % other,
+        })
+    }
+}
+
+
 /// Return a lower bound for the next prefix period's size.
 ///
 /// [GS] corollary says that for distinct prefix periods, p2 > (k - 1) p1.
 #[inline]
 fn next_prefix_period(k: usize, period: usize) -> usize {
     (k - 1) * period + 1
-}
-
-#[cfg(debug_assertions)]
-fn assert_perfect_decomp<T: Eq>(k: usize, input: (&[T], &[T])) {
-    // require that a decomp x = u v
-    // that u is "short" and v is k-simple.
-    // k-simple means it has at most one k-HRP which also means it has no k-HRP2
-    assert!(k >= 3);
-    let (u, v) = input;
-    if let Some(hrp1) = hrp(k, 1, v) {
-        if let Some(hrp2) = hrp(k, next_prefix_period(k, hrp1.period), v) {
-            panic!("Factorization u, v = {} , {} is not k-simple because
-                    v's {}-HRP1 is {:?} and {}-HRP2 is {:?}",
-                    u.len(), v.len(), k, hrp1, k, hrp2);
-            
-        }
-    }
-    // ok
 }
 
 /// Decompose `pattern` into two words u, v where u is "short" and v is k-simple.
@@ -194,6 +180,46 @@ fn assert_perfect_decomp<T: Eq>(k: usize, input: (&[T], &[T])) {
 /// 
 /// The composition p = uv is k-perfect iff v is k-simple. and |u| < 2 per(v)
 ///
+///
+//
+// When k >= 3, words satisfy a remarkable combinatorial property:
+// 
+//  each pattern p can be decomposed into uv where u is "short" and v is
+//  a k-simple word.
+// 
+// The composition p = uv is k-perfect iff v is k-simple. and |u| < 2per(v)
+//
+// lemma 7a. HRP2(x) is at least twice as long as HRP1(x)
+//
+// x:  [ - - - - - - - - - - - - - - - - ]
+//       HRP1(x)
+// x:  [ v1 | v1 | - - - - - - - - - - - ]
+//
+// x':           [ - - - - - - - - - - - ]
+//                HRP1(x')
+// x':           [  v2  |  v2  | - - - - ]
+//
+// Size is nondecreasing: |HRP1(x)| <= |HRP1(x')|
+//
+// The elements V(x) = (v1, v2, ..) are the working factors.
+// v1 is HRP1(x); let x' = v1 x, then v2 is HRP1(x') until there are no
+// more HRP1.
+//
+// Define i: greatest integer where |v1 ... v_i| < |HRP2(x)|
+// if v_i+1 exists, |v_i+1| >= |HRP2(x)|
+//
+// Define: first special position is the length of |v1 .. v_i|
+// Define: second special position. let x = v1 ... v_i x', then
+//         it is the first special position of x'.
+//     and so on with further special positions.
+//
+// If HRP2 does not exist, or HRP1 does not exist, 0 is the only special
+// position.
+//
+// Theorem 5 (Decomposition) Let j be the last special position of x
+// Let u = x[1 .. j] and v = x[j + 1 .. n]. Then the decomposition uv of x
+// is k-perfect for k >= 3.
+//
 fn decompose<T: Eq>(k: usize, pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
 
     debug_assert!(k >= 3);
@@ -245,7 +271,28 @@ fn test_decompose_2() {
     assert_matches!(hrp, Some(Hrp { period: 10, len: _ }));
 }
 
+/// Assert that the input = u v is a perfect factorization
+#[cfg(debug_assertions)]
+fn assert_perfect_decomp<T: Eq>(k: usize, input: (&[T], &[T])) {
+    // require that a decomp x = u v
+    // that u is "short" and v is k-simple.
+    // k-simple means it has at most one k-HRP which also means it has no k-HRP2
+    assert!(k >= 3);
+    let (u, v) = input;
+    if let Some(hrp1) = hrp(k, 1, v) {
+        if let Some(hrp2) = hrp(k, next_prefix_period(k, hrp1.period), v) {
+            panic!("Factorization u, v = {} , {} is not k-simple because
+                    v's {}-HRP1 is {:?} and {}-HRP2 is {:?}",
+                    u.len(), v.len(), k, hrp1, k, hrp2);
+            
+        }
+    }
+    // ok
+}
 
+
+/// The value k is a “large enough integer”; [CS] shows k = 3 is the best,
+/// lowest value where the algorithm works (unmodified).
 const GS_K: usize = 3;
 
 /// This is the Galil-Seiferas string matching algorithm.
@@ -259,7 +306,11 @@ pub fn gs_find<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
     } else if pattern.is_empty() {
         return Some(0);
     }
+
+    // preprocess the pattern into u, v
     let (u, v, hrp1) = decompose(GS_K, pattern);
+
+    // find each occurence of v in the text; then check if u precedes it
     let mut pos = 0;
     while let Some(i) = search_simple(&text[u.len()..], v, &mut pos, &hrp1) {
         if text_has_prefix(&text[i..], u) {
@@ -290,68 +341,11 @@ fn test_gs_search() {
     test_str!("", "aaaaaa");
 }
 
-    // Define: primitive is not a power of another word and is not the empty
-    // string.
-    //
-    // Longest prefix z
-    // with prefix period v.
-    //
-    // # Scope
-    //
-    // Thus, we can consider the longest prefix z of x which has the prefix
-    // period v. Then the scope of v is the interval of integers [L, R] defined
-    // by:
-    //
-    //  L = |v²| and R = |z|
-    //
-    // a highly repeating prefix (HRP).
-    // with k = 3 we have a "cube prefix" (three times repreated)
-    //
-    // What happens if the pattern has at most one k-HRP? We say
-    // that such a pattern is k-simple.
-    //
-    // When k >= 3, words satisfy a remarkable combinatorial property:
-    // 
-    //  each pattern p can be decomposed into uv where u is "short" and v is
-    //  a k-simple word.
-    // 
-    // The composition p = uv is k-perfect iff v is k-simple. and |u| < 2per(v)
-    //
-    // lemma 7a. HRP2(x) is at least twice as long as HRP1(x)
-    //
-    //
-    // x:  [ - - - - - - - - - - - - - - - - ]
-    //       HRP1(x)
-    // x:  [ v1 | v1 | - - - - - - - - - - - ]
-    //
-    // x':           [ - - - - - - - - - - - ]
-    //                HRP1(x')
-    // x':           [  v2  |  v2  | - - - - ]
-    //
-    // Size is nondecreasing: |HRP1(x)| <= |HRP1(x')|
-    //
-    // The elements V(x) = (v1, v2, ..) are the working factors.
-    // v1 is HRP1(x); let x' = v1 x, then v2 is HRP1(x') until there are no
-    // more HRP1.
-    //
-    // Define i: greatest integer where |v1 ... v_i| < |HRP2(x)|
-    // if v_i+1 exists, |v_i+1| >= |HRP2(x)|
-    //
-    // Define: first special position is the length of |v1 .. v_i|
-    // Define: second special position. let x = v1 ... v_i x', then
-    //         it is the first special position of x'.
-    //     and so on with further special positions.
-    //
-    // If HRP2 does not exist, or HRP1 does not exist, 0 is the only special
-    // position.
-    //
-    // Theorem 5 (Decomposition) Let j be the last special position of x
-    // Let u = x[1 .. j] and v = x[j + 1 .. n]. Then the decomposition uv of x
-    // is k-perfect for k >= 3.
-    //
-    //
-
-/// pattern is k-simple which means it has at most one k-HRP
+/// Search `text` for the `pattern` with the requirement that the pattern
+/// is k-simple; which means it has at most one k-HRP.
+///
+/// `start_pos` is the position to start the search, and it is updated after
+/// the function returns with a match.
 fn search_simple<T: Eq>(text: &[T], pattern: &[T],
                         start_pos: &mut usize, hrp1: &Option<Hrp>)
     -> Option<usize>
@@ -403,7 +397,6 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
             pos += j / GS_K + 1;
         }
     }
-    *start_pos = pos;
     None
 }
 
