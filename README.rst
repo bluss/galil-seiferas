@@ -1,23 +1,24 @@
-template
-========
+galil-seiferas
+==============
+
+**Not published: no docs available**
 
 Please read the `API documentation on docs.rs`__
 
-__ https://docs.rs/template/
+__ https://docs.rs/galil-seiferas/
 
 |build_status|_ |crates|_
 
-.. |build_status| image:: https://travis-ci.org/bluss/template.svg?branch=master
-.. _build_status: https://travis-ci.org/bluss/template
+.. |build_status| image:: https://travis-ci.org/bluss/galil-seiferas.svg?branch=master
+.. _build_status: https://travis-ci.org/bluss/galil-seiferas
 
-.. |crates| image:: http://meritbadge.herokuapp.com/template
-.. _crates: https://crates.io/crates/template
-
+.. |crates| image:: http://meritbadge.herokuapp.com/galil-seiferas
+.. _crates: https://crates.io/crates/galil-seiferas
 
 Recent Changes
 --------------
 
-- 0.1.0
+- *
 
   - Initial release.
 
