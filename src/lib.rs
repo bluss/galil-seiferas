@@ -237,7 +237,7 @@ fn test_decompose() {
     let s = b"aaabaaabaaabaabbbb";
     assert_matches!(decompose(3, s), (_, _, None));
     let s = b"abababababababababababcabcabcabcabc";
-    assert_matches!(decompose(3, s), (_, _, Some(Hrp { period: 2, len: 10 })));
+    assert_matches!(decompose(3, s), (_, _, Some(Hrp { period: 2, len: _ })));
     let s = b"ananananananananan in the face";
     assert_matches!(decompose(3, s), (_, _, Some(_)));
 }
