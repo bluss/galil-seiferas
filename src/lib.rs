@@ -53,8 +53,6 @@ use std::cmp::max;
 
 #[macro_use]
 mod util;
-#[cfg(test)]
-use util::Bytestring;
 
 /// Test if `text` starts with `pattern`.
 fn text_has_prefix<T: Eq>(text: &[T], pattern: &[T]) -> bool {
@@ -291,68 +289,6 @@ fn test_gs_search() {
     test_str!("", "aaaaaa");
 }
 
-/// pattern is k-simple which means it has at most one k-HRP
-fn search_simple<T: Eq>(text: &[T], pattern: &[T],
-                        start_pos: &mut usize, hrp1: &Option<Hrp>)
-    -> Option<usize>
-{
-    // 
-    #[cfg(debug_assertions)]
-    assert_perfect_decomp(GS_K, (&[], pattern));
-    debug_assert!(pattern.len() <= text.len());
-    debug_assert_eq!(hrp(GS_K, 1, pattern), *hrp1);
-    let n = text.len();
-    let m = pattern.len();
-
-    let (has_scope, scope_l, scope_r) = if let Some(hrp1) = *hrp1 {
-        // Scope of the k-HRP1 is [L, R]
-        // where
-        //  L = |v²| = 2 × period
-        //  R = z = length of prefix
-        //
-        // See Lemma 2 in [CR]:
-        //
-        // Any nonempty prefix u of x satisfies
-        //
-        // per(u) = Li / 2 if |u| is in [Li, Ri] for some i
-        // per(u) > |u| / k if not
-        //
-        let scope_l = hrp1.period * 2;
-        let scope_r = hrp1.len;
-        debug_assert!(scope_l <= scope_r);
-        (true, scope_l, scope_r)
-    } else {
-        (false, 0, 0)
-    };
-
-    let mut pos = *start_pos;
-    let mut j = 0;
-    while pos <= n - m {
-        while j < m && pattern[j] == text[pos + j] {
-            j += 1;
-        }
-        if j == m {
-            *start_pos = pos + 1;
-            return Some(pos);
-        }
-        if has_scope && j >= scope_l && j <= scope_r {
-            pos += scope_l / 2;
-            j -= scope_l / 2;
-        } else {
-            j = 0;
-            pos += j / GS_K + 1;
-        }
-    }
-    *start_pos = pos;
-    None
-}
-
-// find first `out.len()` k-HRP scopes of `pattern`
-#[cfg(test)]
-fn gl_first_scopes(k: usize, pattern: &[u8], scope_out: &mut [(usize, usize)]) {
-
-    //
-    //
     // Define: primitive is not a power of another word and is not the empty
     // string.
     //
@@ -413,79 +349,60 @@ fn gl_first_scopes(k: usize, pattern: &[u8], scope_out: &mut [(usize, usize)]) {
     // is k-perfect for k >= 3.
     //
     //
-    let scope = scope_out;
-    let mut scope_index = 0;
-    let mut period = 1;
-    let mut j = 0;
+
+/// pattern is k-simple which means it has at most one k-HRP
+fn search_simple<T: Eq>(text: &[T], pattern: &[T],
+                        start_pos: &mut usize, hrp1: &Option<Hrp>)
+    -> Option<usize>
+{
+    // 
+    #[cfg(debug_assertions)]
+    assert_perfect_decomp(GS_K, (&[], pattern));
+    debug_assert!(pattern.len() <= text.len());
+    debug_assert_eq!(hrp(GS_K, 1, pattern), *hrp1);
+    let n = text.len();
     let m = pattern.len();
-    let mut n_hrp = 0;
-    while period + j < m {
-        // scan while the string is periodic
-        println!("j={}, period={}, scope={:?}", j, period, scope);
-        while period + j < m && pattern[j] == pattern[period + j] {
+
+    let (has_scope, scope_l, scope_r) = if let Some(hrp1) = *hrp1 {
+        // Scope of the k-HRP1 is [L, R]
+        // where
+        //  L = |v²| = 2 × period
+        //  R = z = length of prefix
+        //
+        // See Lemma 2 in [CR]:
+        //
+        // Any nonempty prefix u of x satisfies
+        //
+        // per(u) = Li / 2 if |u| is in [Li, Ri] for some i
+        // per(u) > |u| / k if not
+        //
+        let scope_l = hrp1.period * 2;
+        let scope_r = hrp1.len;
+        debug_assert!(scope_l <= scope_r);
+        (true, scope_l, scope_r)
+    } else {
+        (false, 0, 0)
+    };
+
+    let mut pos = *start_pos;
+    let mut j = 0;
+    while pos <= n - m {
+        while j < m && pattern[j] == text[pos + j] {
             j += 1;
         }
-        if j > 1 {
-            println!("found period={}, j={} which is {}", period, j, Bytestring(&pattern[..j]));
-            n_hrp += 1;
-            println!("{}-HRP{} is {:?}", k, n_hrp, &pattern[..period]);
+        if j == m {
+            *start_pos = pos + 1;
+            return Some(pos);
         }
-        if period <= (period + j) / k {
-            scope[scope_index] = (2 * period, period + j);
-            scope_index += 1;
-            if scope_index >= scope.len() {
-                break;
-            }
-        }
-        /* if j belongs to some scope */
-        if let Some(&s) = scope[..scope_index].iter().find(|s| s.0 <= j && j <= s.1) {
-            period += s.0 / 2;
-            j -= s.0 / 2;
+        if has_scope && j >= scope_l && j <= scope_r {
+            pos += scope_l / 2;
+            j -= scope_l / 2;
         } else {
-            period += j / k + 1;
             j = 0;
+            pos += j / GS_K + 1;
         }
     }
-    println!("end with scope={:?}", scope);
-}
-
-#[test]
-fn test_gl_scopes_2() {
-    let mut scope = [(0, 0); 4];
-    let answer = [(6, 6), (10, 11), (16, 19), (26, 32)];
-    gl_first_scopes(2, b"abaababaabaababaababaabaababaabaab", &mut scope);
-    assert_eq!(scope, answer);
-}
-
-// Galil-Seiferas algorithm
-#[cfg(test)]
-pub fn gl_search(text: &[u8], pattern: &[u8]) -> Option<usize> {
-
-    // const K: usize = 4;
-
-    // given pattern x
-    // given text y
-    //
-    // reach, where i in [0, m)
-    // reach(i) = i + max { i' <= m - i : x[0..i'] = x[i + 1 .. i' + i + 1] }
-    // prefix x[0..p] of x is a prefix period if it is basic and reach(p) >= k p
-    //
-    // The preprocessing phase of the Galil-Seiferas algorithm consists in
-    // finding a decomposition uv of x such that v has at most one prefix period
-    // and |u|=O(per(v)). Such a decomposition is called a perfect
-    // factorization.
-    //
-    // Then the searching phase consists of scanning the text y for every
-    // occurrences of v and when v occurs to check naively if u occurs just
-    // before in y.
-    //
-    //
-    // http://www-igm.univ-mlv.fr/~lecroq/string/node25.html
-
-
-    // newP1 find shortest prefix period
-    // newP2 find second shortest prefix period
-    //
+    *start_pos = pos;
     None
 }
 

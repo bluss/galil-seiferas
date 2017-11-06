@@ -1,5 +1,5 @@
 
-#[cfg(test)]
+#[cfg(unused)]
 use std::fmt;
 
 #[cfg(not(debug_assertions))]
@@ -7,10 +7,10 @@ macro_rules! println {
     ($($t:tt)*) => { }
 }
 
-#[cfg(test)]
+#[cfg(unused)]
 pub(crate) struct Bytestring<'a, T: 'a>(pub &'a [T]);
 
-#[cfg(test)]
+#[cfg(unused)]
 impl<'a> fmt::Display for Bytestring<'a, u8> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for &elt in self.0 {
