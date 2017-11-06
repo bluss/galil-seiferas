@@ -165,6 +165,7 @@ fn next_prefix_period(k: usize, period: usize) -> usize {
     (k - 1) * period + 1
 }
 
+#[cfg(debug_assertions)]
 fn assert_perfect_decomp<T: Eq>(k: usize, input: (&[T], &[T])) {
     // require that a decomp x = u v
     // that u is "short" and v is k-simple.
