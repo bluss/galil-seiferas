@@ -53,16 +53,14 @@ use std::cmp::max;
 
 #[macro_use]
 mod util;
+#[cfg(test)]
 use util::Bytestring;
-
 
 /// Test if `text` starts with `pattern`.
 fn text_has_prefix<T: Eq>(text: &[T], pattern: &[T]) -> bool {
     debug_assert!(text.len() >= pattern.len());
     text[..pattern.len()] == *pattern
 }
-
-type T = u8;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 /// Highly-repeating-prefix
@@ -125,8 +123,7 @@ impl Hrp {
 /// Throughout we say HRP1(x) for the first HRP of x, HRP2(x) for the second HRP
 /// of x, etc.
 ///
-fn hrp(k: usize, mut period: usize, pattern: &[T]) -> Option<Hrp> {
-    println!("Enter hrp: k={}, period={}, pattern={}", k, period, Bytestring(pattern));
+fn hrp<T: Eq>(k: usize, mut period: usize, pattern: &[T]) -> Option<Hrp> {
     let m = pattern.len();
     let mut j = 0;
     while period + j < m {
@@ -135,9 +132,6 @@ fn hrp(k: usize, mut period: usize, pattern: &[T]) -> Option<Hrp> {
         }
         let prefix_len = period + j;
         if period <= (period + j) / k {
-            println!("Exit  hrp: k={}, period={}, len={}, prefix={}", k, period,
-                     prefix_len, Bytestring(&pattern[..prefix_len]));
-
             return Some(Hrp { period: period, len: prefix_len });
         }
         // [ a b a b x x ]
@@ -152,7 +146,6 @@ fn hrp(k: usize, mut period: usize, pattern: &[T]) -> Option<Hrp> {
         period += j / k + 1;
         j = 0;
     }
-    println!("Exit  hrp: k={}, no HRP", k);
     None
 }
 
@@ -174,7 +167,7 @@ fn next_prefix_period(k: usize, period: usize) -> usize {
     (k - 1) * period + 1
 }
 
-fn assert_perfect_decomp(k: usize, input: (&[T], &[T])) {
+fn assert_perfect_decomp<T: Eq>(k: usize, input: (&[T], &[T])) {
     // require that a decomp x = u v
     // that u is "short" and v is k-simple.
     // k-simple means it has at most one k-HRP which also means it has no k-HRP2
@@ -184,7 +177,7 @@ fn assert_perfect_decomp(k: usize, input: (&[T], &[T])) {
         if let Some(hrp2) = hrp(k, next_prefix_period(k, hrp1.period), v) {
             panic!("Factorization u, v = {} , {} is not k-simple because
                     v's {}-HRP1 is {:?} and {}-HRP2 is {:?}",
-                    Bytestring(u), Bytestring(v), k, hrp1, k, hrp2);
+                    u.len(), v.len(), k, hrp1, k, hrp2);
             
         }
     }
@@ -202,7 +195,7 @@ fn assert_perfect_decomp(k: usize, input: (&[T], &[T])) {
 /// 
 /// The composition p = uv is k-perfect iff v is k-simple. and |u| < 2 per(v)
 ///
-fn decompose(k: usize, pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
+fn decompose<T: Eq>(k: usize, pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
 
     debug_assert!(k >= 3);
     let mut j = 0;
@@ -260,7 +253,7 @@ const GS_K: usize = 3;
 ///
 /// If a match exists where `pattern` is a substring of `text`, return the
 /// offset to the start of the match inside `Some(_)`. If not, return `None`.
-pub fn gs_find(text: &[T], pattern: &[T]) -> Option<usize> {
+pub fn gs_find<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
     // trivial cases; the empty pattern is a match
     if pattern.len() > text.len() {
         return None;
@@ -299,7 +292,10 @@ fn test_gs_search() {
 }
 
 /// pattern is k-simple which means it has at most one k-HRP
-fn search_simple(text: &[T], pattern: &[T], start_pos: &mut usize, hrp1: &Option<Hrp>) -> Option<usize> {
+fn search_simple<T: Eq>(text: &[T], pattern: &[T],
+                        start_pos: &mut usize, hrp1: &Option<Hrp>)
+    -> Option<usize>
+{
     // 
     #[cfg(debug_assertions)]
     assert_perfect_decomp(GS_K, (&[], pattern));

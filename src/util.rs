@@ -1,13 +1,17 @@
 
+#[cfg(test)]
 use std::fmt;
-pub(crate) struct Bytestring<'a>(pub &'a [u8]);
 
 #[cfg(not(debug_assertions))]
 macro_rules! println {
     ($($t:tt)*) => { }
 }
 
-impl<'a> fmt::Display for Bytestring<'a> {
+#[cfg(test)]
+pub(crate) struct Bytestring<'a, T: 'a>(pub &'a [T]);
+
+#[cfg(test)]
+impl<'a> fmt::Display for Bytestring<'a, u8> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for &elt in self.0 {
             for byte in ::std::ascii::escape_default(elt) {
