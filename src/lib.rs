@@ -119,44 +119,76 @@ fn test_has_prefix() {
 ///    HRP(x) period=2, len=9
 ///
 /// Throughout we say HRP1(x) for the first HRP of x, HRP2(x) for the second HRP
-/// of x, etc.
+/// of x, etc. *Note* that a second HRP also starts from the beginning of x,
+/// it just has a greater period.
 ///
-//
-// reach_w(p) = { max q <= |w| | w[0..p] is a period of w[0..q] }
-fn hrp<T: Eq>(k: usize, mut period: usize, pattern: &[T]) -> Option<Hrp> {
+fn hrp<T: Eq>(mut period: usize, pattern: &[T]) -> (Option<Hrp>, Option<Hrp>) {
+    let k = GS_K;
     let m = pattern.len();
     let mut j = 0;
+    let mut hrp1 = None;
+
     while period + j < m {
         while period + j < m && get!(pattern, j) == get!(pattern, period + j) {
             j += 1;
         }
         let prefix_len = period + j;
-        if period <= (period + j) / k {
-            return Some(Hrp { period: period, len: prefix_len });
+
+        if prefix_len >= period * k {
+            let next_hrp = Some(Hrp { period: period, len: prefix_len });
+            if let Some(_) = hrp1 {
+                return (hrp1, next_hrp);
+            } else {
+                hrp1 = next_hrp;
+            }
+
+            // HRP1 has period `p1`
+            //
+            // HRP2 if it exists, must have a period p2 > (k - 1) p1
+
+            j -= period;
+            period = next_prefix_period(k, period);
+            trace!("j -= {} (={})", j, j);
+            trace!("period = {} × p + 1 (={})", k, period);
+            continue;
         }
-        // [ a b a b x x ]
-        //    \ 
-        //     j  
-        // period == 1; j == 0; k == 3; period += 1;
-        //
-        // [ a b a b x x ]
-        //          \
-        //           j
-        // period == 2; j == 3; k == 3; period += 2;
+        if let Some(ref hrp1) = hrp1 {
+            let scope_l = hrp1.period * 2;
+            let scope_r = hrp1.len;
+            if j >= scope_l && j <= scope_r {
+                period += scope_l / 2;
+                j -= scope_l / 2;
+                trace!("period += {} (={})", scope_l / 2, period);
+                trace!("j -= {} (={})", scope_l / 2, j);
+                continue;
+            }
+        }
         period += j / k + 1;
+        trace!("period += {} (={})", j / k + 1, period);
         j = 0;
+        trace!("j = {}", j);
     }
-    None
+    (hrp1, None)
 }
 
 #[test]
 fn test_hrp() {
-    let s = b"aabaabaabaabbbb";
+    let s = b"aabaabaabaabaabaabbbb";
 
-    assert_eq!(hrp(2, 1, s), Some(Hrp::from(1, 2)));
-    assert_eq!(hrp(2, 2, s), Some(Hrp::from(3, 12)));
-    assert_eq!(hrp(3, 2, s), Some(Hrp::from(3, 12)));
-    assert_eq!(hrp(2, 4, s), Some(Hrp::from(6, 12)));
+    println!("s: {}", Bytestring(s));
+    assert_matches!(hrp(1, s), (Some(Hrp { period: 3, len: 18 }), None));
+    assert_matches!(hrp(2, s), (Some(Hrp { period: 3, len: 18 }), None));
+    assert_matches!(hrp(4, s), (Some(Hrp { period: 6, len: 18 }), None));
+    assert_matches!(hrp(6, s), (Some(Hrp { period: 6, len: 18 }), None));
+}
+
+#[test]
+fn test_hrp_length() {
+    // test a string short one char
+    let mut s = "aab".repeat(GS_K);
+    assert_matches!(hrp(1, s.as_bytes()), (Some(Hrp { period: 3, .. }), None));
+    s.pop();
+    assert_matches!(hrp(1, s.as_bytes()), (None, None));
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -167,11 +199,6 @@ struct Hrp {
 }
 
 impl Hrp {
-    #[cfg(test)]
-    fn from(period: usize, len: usize) -> Self {
-        Hrp { period, len }
-    }
-
     /// The special position for HRP1(x) with period v
     /// is the length of v1 ... vi where i is the maximal integer
     /// where |v1 ... vi| < |HRP2(x)|
@@ -253,19 +280,19 @@ fn next_prefix_period(k: usize, period: usize) -> usize {
 // is k-perfect for k >= 3.
 //
 fn decompose<T: Eq>(pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
-    let k = GS_K;
     let mut j = 0;
-    let mut hrp1_opt = hrp(k, 1, pattern);
+    let (mut hrp1_opt, mut hrp2_opt) = hrp(1, pattern);
     loop {
         if let Some(hrp1) = hrp1_opt {
-            if let Some(hrp2) = hrp(k, next_prefix_period(k, hrp1.period), get!(pattern, j..)) {
+            if let Some(hrp2) = hrp2_opt {
                 // x' = x[j..]
                 j += hrp1.special_position(&hrp2);
 
-                // compute HRP1(x')
+                // compute HRP1(x') and HRP2(x')
                 // size is nondecreasing: so use the HRP1(x) period.
-                hrp1_opt = hrp(k, hrp1.period, get!(pattern, j..));
-                // will compute HRP2(x') in the next iteration
+                let (h1, h2) = hrp(hrp1.period, get!(pattern, j..));
+                hrp1_opt = h1;
+                hrp2_opt = h2;
                 continue;
             }
         }
@@ -273,7 +300,7 @@ fn decompose<T: Eq>(pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
     }
     let (a, b) = (get!(pattern, ..j), get!(pattern, j..));
     #[cfg(debug_assertions)]
-    assert_perfect_decomp(k, (a, b));
+    assert_perfect_decomp(GS_K, (a, b));
     (a, b, hrp1_opt)
 }
 
@@ -308,8 +335,8 @@ fn assert_perfect_decomp<T: Eq>(k: usize, input: (&[T], &[T])) {
     // k-simple means it has at most one k-HRP which also means it has no k-HRP2
     assert!(k >= 3);
     let (u, v) = input;
-    if let Some(hrp1) = hrp(k, 1, v) {
-        if let Some(hrp2) = hrp(k, next_prefix_period(k, hrp1.period), v) {
+    if let (Some(hrp1), hrp2) = hrp(1, v) {
+        if let Some(hrp2) = hrp2 {
             panic!("Factorization u, v = {} , {} is not k-simple because
                     v's {}-HRP1 is {:?} and {}-HRP2 is {:?}",
                     u.len(), v.len(), k, hrp1, k, hrp2);
@@ -383,7 +410,7 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
     #[cfg(debug_assertions)]
     assert_perfect_decomp(GS_K, (&[], pattern));
     debug_assert!(pattern.len() <= text.len());
-    debug_assert_eq!(hrp(GS_K, 1, pattern), *hrp1);
+    debug_assert_eq!(hrp(1, pattern).0, *hrp1);
     let n = text.len();
     let m = pattern.len();
 
