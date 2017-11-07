@@ -601,4 +601,19 @@ mod benches {
         });
         b.bytes = haystack.len() as u64;
     }
+
+    #[bench]
+    fn bench_gs_periodic5_50(b: &mut Bencher) {
+        defmac!(haystack5 n => ("bacba".repeat(n - 1) + "bbbbb").repeat(n));
+        defmac!(needle5 n => "bacba".repeat(n));
+        let n = 50;
+        let haystack = haystack5!(n);
+        let pattern = needle5!(n);
+
+        b.iter(|| {
+            gs_find(haystack.as_bytes(), pattern.as_bytes())
+        });
+        b.bytes = haystack.len() as u64;
+    }
+
 }
