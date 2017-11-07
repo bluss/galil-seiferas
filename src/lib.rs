@@ -415,8 +415,8 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
             pos += scope_l / 2;
             j -= scope_l / 2;
         } else {
-            j = 0;
             pos += j / GS_K + 1;
+            j = 0;
         }
         if let Some(match_pos) = has_match {
             *start_pos = pos;
