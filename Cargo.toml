@@ -9,11 +9,11 @@ authors = ["bluss"]
 repository = "https://github.com/bluss/galil-seiferas"
 documentation = "https://docs.rs/galil-seiferas/"
 
-readme = "README-crates.io.md"
-description = ""
 
-keywords = []
-categories = []
+description = "String search in constant space, linear time, for nonorderable alphabets."
+
+keywords = ["string", "substring", "search", "pattern"]
+categories = ["algorithms"]
 
 [dependencies]
 defmac = "0.1"

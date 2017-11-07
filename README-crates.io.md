@@ -1,20 +1,35 @@
 
-`ndarray` implements an *n*-dimensional container for general elements and for
-numerics.
+String search in constant space, linear time, for nonorderable alphabets.
 
-In *n*-dimensional we include for example 1-dimensional rows or columns,
-2-dimensional matrices, and higher dimensional arrays. If the array has *n*
-dimensions, then an element in the array is accessed by using that many indices.
-Each dimension is also called an *axis*.
+In Rust terms this means we can define the function:
 
-## Highlights
+```rust
+fn gs_find<T>(text: &[T], pattern: &[T]) -> Option<usize>
+where T: Eq
+{
+    // ...
+# drop((text, pattern));
+# unimplemented!()
+}
+```
 
-- Generic *n*-dimensional array
-- Slicing, also with arbitrary step size, and negative indices to mean
-  elements from the end of the axis.
-- Views and subviews of arrays; iterators that yield subviews.
-- Higher order operations and arithmetic are performant
-- Array views can be used to slice and mutate any `[T]` data using
-  `ArrayView::from` and `ArrayViewMut::from`.
-- `Zip` for lock step function application across two or more arrays or other
-  item producers (`NdProducer` trait).
+and the function computes in **O(n)** time and **O(1)** space.
+In the worst case, this algorithm makes **4 n** character comparisons.
+
+Note that the Crochemore-Perrin (“Two Way” algorithm) is much superior if
+there is a linear order for the alphabet.
+
+This work is Copyright 2017 by Ulrik Sverdrup "bluss"; see license terms
+in the package.
+
+# References
+
+- [GS] Z. Galil and J. Seiferas,
+*Time-Space-Optimal String Matching*,
+Journal of Computer and System Sciences (1983)
+- [CR] M. Crochemore and W. Rytter,
+*Squares, Cubes, and Time-Space Efficient String Searching*,
+Algorithmica (1995)
+  - Crochemore-Rytter's description of the Galil-Seiferas algoritm has been
+  very helpful and it explains how it works in concepts that we could
+  implement.
