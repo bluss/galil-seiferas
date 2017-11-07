@@ -79,25 +79,30 @@ fn test_has_prefix() {
     }
 }
 
-/// HRP: Highly-repeating-prefix
+/// Highly-repeating-prefix (HRP)
 ///
 /// # Background
 ///
 /// A string is *basic* if it is not of the form *a^i* for any word *a* and
 /// integer *i*.
-/// A string z is a *prefix period* of w if it is basic and z^k is a prefix of w.
+///
+/// For example, a, aba and abb are basic and aa and abab are not.
+///
+/// A string z is a *prefix period* of w if it is basic and z^k is a prefix of w
+/// (and k is explained below).
 ///
 /// For example, given w = "ababababa", z = "ab" is a prefix period.
 /// For example, given w = "aaaaaa", z = "a" is a prefix period and "aa" is not.
 ///
 /// # k-HRP
 ///
-/// k-HRP means that the prefix consists of at least k periods where k is a
-/// “reasonably large integer” (GS use k = 4 but [CR] show that k = 3 works
+/// k-HRP means a periodic prefix that consists of at least k periods where k is
+/// a “reasonably large integer” (GS use k = 4 but [CR] show that k = 3 works
 /// and is the smallest.)
 ///
 /// Find the first k-HRP with period >= `period`; return its period and 
-/// the length of the prefix.
+/// the length of the prefix (and the length doesn't have to be a multiple of
+/// the period).
 ///
 /// Examples:
 ///
@@ -112,6 +117,8 @@ fn test_has_prefix() {
 /// Throughout we say HRP1(x) for the first HRP of x, HRP2(x) for the second HRP
 /// of x, etc.
 ///
+//
+// reach_w(p) = { max q <= |w| | w[0..p] is a period of w[0..q] }
 fn hrp<T: Eq>(k: usize, mut period: usize, pattern: &[T]) -> Option<Hrp> {
     let m = pattern.len();
     let mut j = 0;
