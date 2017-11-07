@@ -231,10 +231,20 @@ fn test_find_short() {
 
 quickcheck! {
     fn test_find_longer_simple(a: SimpleText, b: SimpleText) -> () {
-        let a = &a.0;
+        // find all
+        let mut a = &a[..];
         let b = &b[..];
-        let truth = a.find(b);
-        assert_eq!(find(&a, &b), truth);
+        let mut n = 10;
+        while let Some(i) = a.find(b) {
+            assert_eq!(find(&a, &b), Some(i));
+            // drop the char at i.
+            let mut iter = a[i..].chars();
+            iter.next();
+            a = iter.as_str();
+            n -= 1;
+            if n == 0 { return; }
+        }
+        assert_eq!(find(a, b), None);
     }
 
     fn test_find_fib_in_simple(a: SimpleText, b: FibWord) -> () {
@@ -245,10 +255,20 @@ quickcheck! {
     }
 
     fn test_find_fib_in_fib(a: FibWord, b: FibWord) -> () {
-        let a = &a.0;
+        // find all
+        let mut a = &a[..];
         let b = &b[..];
-        let truth = a.find(b);
-        assert_eq!(find(&a, &b), truth);
+        let mut n = 10;
+        while let Some(i) = a.find(b) {
+            assert_eq!(find(&a, &b), Some(i));
+            // drop the char at i.
+            let mut iter = a[i..].chars();
+            iter.next();
+            a = iter.as_str();
+            n -= 1;
+            if n == 0 { return; }
+        }
+        assert_eq!(find(a, b), None);
     }
 
     fn test_find_simple_in_fib(a: FibWord, b: SimpleText) -> () {
