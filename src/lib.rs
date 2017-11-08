@@ -176,6 +176,8 @@ impl Hrp {
     /// where |v1 ... vi| < |HRP2(x)|
     ///
     /// Taking |HRP2(x)| to mean the period of HRP2.
+    ///
+    /// cf. length of prefix period in [GS]
     fn special_position(&self, hrp2: &Self) -> usize {
         let max = hrp2.period - 1;
         debug_assert!(max >= 1);
