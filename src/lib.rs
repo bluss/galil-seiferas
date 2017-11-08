@@ -89,7 +89,7 @@ fn test_has_prefix() {
 /// A string is *basic* if it is not of the form *a^i* for any word *a* and
 /// integer *i*.
 ///
-/// For example, a, aba and abb are basic and aa and abab are not.
+/// For example, "a", "aba", "abb" are basic and "aa", "abab" are not basic.
 ///
 /// A string z is a *prefix period* of w if it is basic and z^k is a prefix of w
 /// (and k is explained below).
