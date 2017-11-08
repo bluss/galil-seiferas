@@ -60,7 +60,10 @@ use std::cmp::max;
 defmac!(get slice, index => unsafe { ::unchecked_index::get_unchecked(slice, index) });
 
 #[macro_use]
-mod util;
+#[doc(hidden)]
+pub mod util;
+#[cfg(test)]
+use util::Bytestring;
 
 /// Test if `text` starts with `pattern`.
 fn text_has_prefix<T: Eq>(text: &[T], pattern: &[T]) -> bool {

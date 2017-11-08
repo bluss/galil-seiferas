@@ -42,8 +42,7 @@ pub(crate) fn brute_force_search<T: Eq>(text: &[T], pattern: &[T]) -> Option<usi
 }
 
 // using memcmp
-#[cfg(test)]
-pub(crate) fn brute_force_fast<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
+pub fn brute_force_fast<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
     let n = text.len();
     let m = pattern.len();
     if n < m {
