@@ -233,14 +233,6 @@ impl Hrp {
 }
 
 
-/// Return a lower bound for the next prefix period's size.
-///
-/// [GS] corollary says that for distinct prefix periods, p2 > (k - 1) p1.
-#[inline]
-fn next_prefix_period(k: usize, period: usize) -> usize {
-    (k - 1) * period + 1
-}
-
 /// Decompose `pattern` into two words u, v where u is "short" and v is k-simple.
 ///
 /// When *k* >= 3, words satisfy a remarkable combinatorial property:
