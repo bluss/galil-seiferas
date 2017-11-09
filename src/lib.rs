@@ -10,12 +10,9 @@
 //! In Rust terms this means we can define the function:
 //!
 //! ```rust
-//! fn gs_find<T>(text: &[T], pattern: &[T]) -> Option<usize>
-//! where T: Eq
-//! {
+//! fn gs_find<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
 //!     // ...
-//! # drop((text, pattern));
-//! # unimplemented!()
+//! # None
 //! }
 //! ```
 //!
