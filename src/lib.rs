@@ -394,9 +394,11 @@ pub fn gs_find<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
     None
 }
 
+#[cfg(test)]
+defmac!(test_str text, pat => assert_eq!(text.find(pat), gs_find(text.as_bytes(), pat.as_bytes())));
+
 #[test]
-fn test_gs_search() {
-    defmac!(test_str text, pat => assert_eq!(text.find(pat), gs_find(text.as_bytes(), pat.as_bytes())));
+fn test_gs_find_vs_str_find() {
     test_str!("abc", "");
     test_str!("abc", "a");
     test_str!("abc", "z");
@@ -413,6 +415,14 @@ fn test_gs_search() {
     test_str!("aaaaaabaaab", "aaaaaabaab");
     test_str!("", "");
     test_str!("", "aaaaaa");
+}
+
+#[test]
+fn test_gs_find2() {
+    // found by cargo fuzz; proves need of scope_l/scope_r check in hrp
+    let s = "\x0abaaabaaabaaabaaabaaabbbbb";
+    let n = "aaabaaabaaabaaabbbbb";
+    test_str!(s, n);
 }
 
 /// Search `text` for the `pattern` with the requirement that the pattern
