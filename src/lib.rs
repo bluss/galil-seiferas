@@ -308,8 +308,26 @@ fn decompose<T: Eq>(pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
 fn test_decompose() {
     let s = b"banana";
     assert_matches!(decompose(s), (_, _, None));
+
+    // aaa as HRP1 (per=1) and aaabaaabaaab.. as HRP2 (per=4)
+    let s = "aaab".repeat(4) + "bbbb";
+    let (u, v, hrp) = decompose(s.as_bytes());
+    println!("u,v = {},{} hrp1={:?}", Bytestring(u), Bytestring(v), hrp);
+    assert_eq!(u.len(), 3);
+    assert_matches!(hrp, Some(Hrp { period: 4, len: 13 }));
+
+    let s = String::from("aaa") + &"ab".repeat(4);
+    let (u, v, hrp) = decompose(s.as_bytes());
+    println!("u,v = {},{} hrp1={:?}", Bytestring(u), Bytestring(v), hrp);
+    assert_eq!(u.len(), 0);
+    assert_matches!(hrp, Some(Hrp { period: 1, .. }));
+
     let s = b"aaabaaabaaabaabbbb";
-    assert_matches!(decompose(s), (_, _, None));
+    let (u, v, hrp) = decompose(s);
+    println!("u,v = {},{} hrp1={:?}", Bytestring(u), Bytestring(v), hrp);
+    assert_eq!(u.len(), 3);
+    assert_matches!(hrp, None);
+
     let s = b"abababababababababababcabcabcabcabc";
     assert_matches!(decompose(s), (_, _, Some(Hrp { period: 2, len: _ })));
     let s = b"ananananananananan in the face";
