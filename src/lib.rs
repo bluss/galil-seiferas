@@ -330,7 +330,7 @@ fn decompose<T: Eq>(pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
     }
     let (a, b) = (get!(pattern, ..j), get!(pattern, j..));
     #[cfg(debug_assertions)]
-    assert_perfect_decomp(GS_K, (a, b));
+    assert_perfect_decomposition(GS_K, a, b);
     (a, b, hrp1_opt)
 }
 
@@ -391,18 +391,24 @@ fn test_decompose_period_1() {
 
 /// Assert that the input = u v is a perfect factorization
 #[cfg(debug_assertions)]
-fn assert_perfect_decomp<T: Eq>(k: usize, input: (&[T], &[T])) {
+fn assert_perfect_decomposition<T: Eq>(k: usize, u: &[T], v: &[T]) {
     // require that a decomp x = u v
     // that u is "short" and v is k-simple.
     // k-simple means it has at most one k-HRP which also means it has no k-HRP2
     assert!(k >= 3);
-    let (u, v) = input;
     if let (Some(hrp1), hrp2) = hrp(1, v) {
         if let Some(hrp2) = hrp2 {
             panic!("Factorization u, v = {} , {} is not k-simple because
                     v's {}-HRP1 is {:?} and {}-HRP2 is {:?}",
                     u.len(), v.len(), k, hrp1, k, hrp2);
             
+        }
+    }
+    // independent check
+    if let Some(prefix_period1) = find_k_hrp(1, v) {
+        // ok, but must not have a second one, or if it has it's a multiple
+        if let Some(prefix_period2) = find_k_hrp(prefix_period1 * 2 + 1, v) {
+            assert_eq!(prefix_period2 % prefix_period1, 0);
         }
     }
     // ok
@@ -478,11 +484,9 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
                         start_pos: &mut usize, hrp1: &Option<Hrp>)
     -> Option<usize>
 {
-    // 
-    #[cfg(debug_assertions)]
-    assert_perfect_decomp(GS_K, (&[], pattern));
     debug_assert!(pattern.len() <= text.len());
     debug_assert_eq!(hrp(1, pattern).0, *hrp1);
+
     let n = text.len();
     let m = pattern.len();
 
