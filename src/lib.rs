@@ -203,15 +203,15 @@ fn next_prefix_period(k: usize, period: usize) -> usize {
 
 /// Decompose `pattern` into two words u, v where u is "short" and v is k-simple.
 ///
-/// k-simple: v has at most one k-HRP; if it exists, it is returned as well.
-///
 /// When *k* >= 3, words satisfy a remarkable combinatorial property:
 /// 
-/// > each pattern p can be decomposed into uv where u is "short" and v is
+/// > each pattern p can be decomposed into u v where u is "short" and v is
 /// >  a k-simple word.
-/// 
-/// The composition p = uv is k-perfect iff v is k-simple. and |u| < 2 per(v)
 ///
+/// + k-simple: v has at most one k-HRP; if it exists, it is returned as well.
+/// + "short": |u| <= 2 per(v)
+///
+/// Definitions from [CR] section 3. Cube Prefixes.
 ///
 //
 // When k >= 3, words satisfy a remarkable combinatorial property:
