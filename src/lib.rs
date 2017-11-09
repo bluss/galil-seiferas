@@ -137,12 +137,11 @@ fn hrp<T: Eq>(mut period: usize, pattern: &[T]) -> (Option<Hrp>, Option<Hrp>) {
         let prefix_length = period + j;
 
         if prefix_length >= period * k {
-            // we found the next k-HRP
+            // we found the next HRP
             let next_hrp = Some(Hrp { period: period, len: prefix_length });
-            if let Some(_) = hrp1 {
-                return (hrp1, next_hrp);
-            } else {
-                hrp1 = next_hrp;
+            match hrp1 {
+                Some(_) => return (hrp1, next_hrp),
+                None => hrp1 = next_hrp,
             }
 
             // period, j adjustments from [GS] An Integrated Implementation.
