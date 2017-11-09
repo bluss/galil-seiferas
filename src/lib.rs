@@ -152,9 +152,9 @@ fn hrp<T: Eq>(mut period: usize, pattern: &[T]) -> (Option<Hrp>, Option<Hrp>) {
             //
             // For example:
             //
-            //   ...
+            //   /.\/.\/.\/.  period = 3
             //   abcabcabcabdefghij  // the pattern
-            //   \........./  prefix with period = 3, period + j = 11
+            //   \........./  prefix with period + j = 11
             //   next period must be >= to accomodate the mismatching char (here "d")
             //
             period = j;
