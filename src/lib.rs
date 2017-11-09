@@ -492,6 +492,16 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
     None
 }
 
+//
+// Remark on KMP, using borders. Finding a period of 4 means there is a border
+// of length - 4 (where a suffix matches a prefix.) This is used in the KMP
+// shift table.
+//
+// // abcdab
+// // xx..xx  border of 2 <=> period of length - 2
+//    |--|--  per(abcdab) = 4
+//
+
 #[test]
 fn test_periodic() {
     let n = 10;
