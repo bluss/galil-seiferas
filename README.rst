@@ -1,9 +1,7 @@
 galil-seiferas
 ==============
 
-**Not published: no docs available**
-
-**Please read the comments in the code**
+General string search in constant space, linear time, for nonorderable alphabets.
 
 Please read the `API documentation on docs.rs`__
 
@@ -20,9 +18,9 @@ __ https://docs.rs/galil-seiferas/
 Recent Changes
 --------------
 
-- *
+- 0.1.0
 
-  - Initial release.
+  - Initial release
 
 
 Benchmarks
