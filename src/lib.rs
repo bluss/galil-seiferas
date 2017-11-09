@@ -381,6 +381,18 @@ fn test_decompose_period_1() {
     assert_matches!(hrp, Some(Hrp { period: 1, len: 50 }));
 }
 
+#[test]
+fn test_decompose_period_2() {
+    let n = 10;
+    let pattern = "ab".repeat(n);
+    let (u, v, hrp) = decompose(pattern.as_bytes());
+    println!("u, v = {}, {}", Bytestring(u), Bytestring(v));
+    println!("hrp = {:?}", hrp);
+    assert_eq!(u.len(), 0);
+    assert_matches!(hrp, Some(Hrp { period: 2, .. }));
+}
+
+
 /// Assert that the input = u v is a perfect factorization
 #[cfg(debug_assertions)]
 fn assert_perfect_decomposition<T: Eq>(k: usize, u: &[T], v: &[T]) {
@@ -541,15 +553,6 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
 // // xx..xx  border of 2 <=> period of length - 2
 //    |--|--  per(abcdab) = 4
 //
-
-#[test]
-fn test_periodic() {
-    let n = 10;
-    let haystack = ("ab".repeat(n - 1) + "bb").repeat(n);
-    let pattern = "ab".repeat(n);
-    let res = gs_find(haystack.as_bytes(), pattern.as_bytes());
-    println!("{:?}", res);
-}
 
 #[cfg(all(test, feature = "benchmarks"))]
 mod benches {
