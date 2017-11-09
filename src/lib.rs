@@ -204,6 +204,31 @@ fn test_hrp_length() {
     assert_matches!(hrp(1, s.as_bytes()), (None, None));
 }
 
+#[cfg(any(test, debug_assertions))]
+fn find_k_hrp<T: Eq>(period: usize, x: &[T]) -> Option<usize> {
+    let mut pos = 0;
+    let mut period = period;
+    while pos < x.len() && period < x.len() {
+        while pos + period < x.len() && x[pos] == x[pos + period] {
+            pos += 1;
+        }
+        if pos + period >= GS_K * period {
+            return Some(period);
+        }
+        pos = 0;
+        period += 1;
+    }
+    None
+}
+
+#[test]
+fn test_find_period() {
+    assert_matches!(find_k_hrp(1, b"aab"), None);
+    assert_matches!(find_k_hrp(1, b"aaab"), Some(1));
+    assert_matches!(find_k_hrp(2, b"abababac"), Some(2));
+    assert_matches!(find_k_hrp(1, b""), None);
+}
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 /// Highly-repeating-prefix
 struct Hrp {
