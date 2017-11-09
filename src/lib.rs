@@ -78,7 +78,7 @@ fn test_has_prefix_oob() {
 #[test]
 fn test_has_prefix() {
     let data = b"some text goes here";
-    for i in 0..data.len() {
+    for i in 0..data.len() + 1 {
         assert!(text_has_prefix(data, &data[..i]));
     }
 }
