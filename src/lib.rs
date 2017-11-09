@@ -428,11 +428,8 @@ const GS_K: usize = 3;
 /// If a match exists where `pattern` is a substring of `text`, return the
 /// offset to the start of the match inside `Some(_)`. If not, return `None`.
 pub fn gs_find<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
-    // trivial cases; the empty pattern is a match
     if pattern.len() > text.len() {
         return None;
-    } else if pattern.is_empty() {
-        return Some(0);
     }
 
     // preprocess the pattern into u, v
