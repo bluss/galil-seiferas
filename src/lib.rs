@@ -511,27 +511,20 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
     } else {
         (false, 0, 0)
     };
-    trace!("scope_l={}, scope_r={}", scope_l, scope_r);
 
     let mut pos = *start_pos;
     let mut j = 0;
     while pos <= n - m {
         while j < m && get!(pattern, j) == get!(text, pos + j) {
             j += 1;
-            trace!("j += {} (={})", 1, j);
         }
-        trace!("pos={}, j={}, m={}", pos, j, m);
         let has_match = if j == m { Some(pos) } else { None };
         if has_scope && j >= scope_l && j <= scope_r {
             pos += scope_l / 2;
             j -= scope_l / 2;
-            trace!("pos += {} (={})", scope_l / 2, pos);
-            trace!("j -= {} (={})", scope_l / 2, j);
         } else {
             pos += j / GS_K + 1;
-            trace!("pos += {} (={})", j / GS_K + 1, pos);
             j = 0;
-            trace!("j = 0");
         }
         if let Some(match_pos) = has_match {
             *start_pos = pos;
