@@ -129,38 +129,51 @@ fn hrp<T: Eq>(mut period: usize, pattern: &[T]) -> (Option<Hrp>, Option<Hrp>) {
     let mut hrp1 = None;
 
     while period + j < m {
+        // find the greatest length (period + j) with the same period
         while period + j < m && get!(pattern, j) == get!(pattern, period + j) {
             j += 1;
         }
-        let prefix_len = period + j;
 
-        if prefix_len >= period * k {
-            let next_hrp = Some(Hrp { period: period, len: prefix_len });
+        let prefix_length = period + j;
+
+        if prefix_length >= period * k {
+            // we found the next k-HRP
+            let next_hrp = Some(Hrp { period: period, len: prefix_length });
             if let Some(_) = hrp1 {
                 return (hrp1, next_hrp);
             } else {
                 hrp1 = next_hrp;
             }
 
-            // HRP1 has period `p1`
+            // period, j adjustments from [GS] An Integrated Implementation.
             //
-            // HRP2 if it exists, must have a period p2 > (k - 1) p1
-
-            j -= period;
-            period = next_prefix_period(k, period);
-            trace!("j -= {} (={})", j, j);
-            trace!("period = {} × p + 1 (={})", k, period);
+            // pattern[..period + j] has period of length `period`
+            // pattern[..period + j + 1] does not.
+            // thus second period >= j.
+            //
+            // For example:
+            //
+            //   ...
+            //   abcabcabcabdefghij  // the pattern
+            //   \........./  prefix with period = 3, period + j = 11
+            //   next period must be >= to accomodate the mismatching char (here "d")
+            //
+            period = j;
+            j = 0;
+            trace!("period = j (={})", period);
+            trace!("j = {}", j);
             continue;
-        }
-        if let Some(ref hrp1) = hrp1 {
-            let scope_l = hrp1.period * 2;
-            let scope_r = hrp1.len;
-            if j >= scope_l && j <= scope_r {
-                period += scope_l / 2;
-                j -= scope_l / 2;
-                trace!("period += {} (={})", scope_l / 2, period);
-                trace!("j -= {} (={})", scope_l / 2, j);
-                continue;
+        } else {
+            if let Some(ref hrp1) = hrp1 {
+                let scope_l = hrp1.period * 2;
+                let scope_r = hrp1.len;
+                if j >= scope_l && j <= scope_r {
+                    period += scope_l / 2;
+                    j -= scope_l / 2;
+                    trace!("period += {} (={})", scope_l / 2, period);
+                    trace!("j -= {} (={})", scope_l / 2, j);
+                    continue;
+                }
             }
         }
         period += j / k + 1;
