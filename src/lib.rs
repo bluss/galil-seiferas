@@ -52,8 +52,6 @@
 #[macro_use] extern crate defmac;
 extern crate unchecked_index;
 
-use std::cmp::max;
-
 /// Macro for debug-checked and release-unchecked indexing and slicing.
 /// This removes bounds checks in some critial inner loops, where it has
 /// a measurable impact.
