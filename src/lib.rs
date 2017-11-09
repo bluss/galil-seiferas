@@ -30,19 +30,16 @@
 //!
 //! # References
 //!
+//! Both papers are recommended reading. The comments in this crate’s
+//! implementation are also meant to explain and point out important details,
+//! so that’s recommended reading too.
+//!
 //! - [GS] Z. Galil and J. Seiferas,
 //! *Time-Space-Optimal String Matching*,
 //! Journal of Computer and System Sciences (1983)
 //! - [CR] M. Crochemore and W. Rytter,
 //! *Squares, Cubes, and Time-Space Efficient String Searching*,
 //! Algorithmica (1995)
-//!   - Crochemore-Rytter's description of the Galil-Seiferas algoritm has been
-//!   very helpful and it explains how it works in concepts that we could
-//!   implement.
-//!
-//! # Implementation Notes
-//!
-//! We use *k* = 3 like [CR] recommend.
 
 
 #![cfg_attr(feature = "benchmarks", feature(test))]
