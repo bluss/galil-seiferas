@@ -28,6 +28,7 @@ matches = "0.1"
 
 [features]
 benchmarks = []
+trace = []
 
 [profile.dev]
 opt-level = 1

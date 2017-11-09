@@ -2,9 +2,14 @@
 #[cfg(unused)]
 use std::fmt;
 
-#[cfg(not(debug_assertions))]
-macro_rules! println {
-    ($($t:tt)*) => { }
+#[cfg(not(feature = "trace"))]
+macro_rules! trace {
+    ($($t:tt)*) => { () }
+}
+
+#[cfg(feature = "trace")]
+macro_rules! trace {
+    ($($t:tt)*) => { println!($($t)*) }
 }
 
 #[cfg(unused)]
