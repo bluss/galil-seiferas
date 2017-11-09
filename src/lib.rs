@@ -269,45 +269,38 @@ impl Hrp {
 ///
 /// Definitions from [CR] section 3. Cube Prefixes.
 ///
-//
-// When k >= 3, words satisfy a remarkable combinatorial property:
-// 
-//  each pattern p can be decomposed into uv where u is "short" and v is
-//  a k-simple word.
-// 
-// The composition p = uv is k-perfect iff v is k-simple. and |u| < 2per(v)
-//
-// lemma 7a. HRP2(x) is at least twice as long as HRP1(x)
-//
-// x:  [ - - - - - - - - - - - - - - - - ]
-//       HRP1(x)
-// x:  [ v1 | v1 | - - - - - - - - - - - ]
-//
-// x':           [ - - - - - - - - - - - ]
-//                HRP1(x')
-// x':           [  v2  |  v2  | - - - - ]
-//
-// Size is nondecreasing: |HRP1(x)| <= |HRP1(x')|
-//
-// The elements V(x) = (v1, v2, ..) are the working factors.
-// v1 is HRP1(x); let x' = v1 x, then v2 is HRP1(x') until there are no
-// more HRP1.
-//
-// Define i: greatest integer where |v1 ... v_i| < |HRP2(x)|
-// if v_i+1 exists, |v_i+1| >= |HRP2(x)|
-//
-// Define: first special position is the length of |v1 .. v_i|
-// Define: second special position. let x = v1 ... v_i x', then
-//         it is the first special position of x'.
-//     and so on with further special positions.
-//
-// If HRP2 does not exist, or HRP1 does not exist, 0 is the only special
-// position.
-//
-// Theorem 5 (Decomposition) Let j be the last special position of x
-// Let u = x[1 .. j] and v = x[j + 1 .. n]. Then the decomposition uv of x
-// is k-perfect for k >= 3.
-//
+///
+/// lemma 7a. HRP2(x) is at least twice as long as HRP1(x)
+///
+/// x : [ - - - - - - - - - - - - - - - - ]
+///       HRP1(x)
+/// x : [ v1 | v1 | - - - - - - - - - - - ]
+///
+/// x':           [ - - - - - - - - - - - ]
+///                HRP1(x')
+/// x':           [  v2  |  v2  | - - - - ]
+///
+/// Size is nondecreasing: |HRP1(x)| <= |HRP1(x')|
+///
+/// The elements V(x) = (v1, v2, ..) are the working factors.
+/// v1 is HRP1(x); let x' = v1 x, then v2 is HRP1(x') until there are no
+/// more HRP1.
+///
+/// Define i: greatest integer where |v1 ... v_i| < |HRP2(x)|
+/// if v_i+1 exists, |v_i+1| >= |HRP2(x)|
+///
+/// Define: first special position is the length of |v1 .. v_i|
+/// Define: second special position. let x = v1 ... v_i x', then
+///         it is the first special position of x'.
+///     and so on with further special positions.
+///
+/// If HRP2 does not exist, or HRP1 does not exist, 0 is the only special
+/// position.
+///
+/// Theorem 5 (Decomposition) Let j be the last special position of x
+/// Let u = x[1 .. j] and v = x[j + 1 .. n]. Then the decomposition uv of x
+/// is k-perfect for k >= 3.
+///
 fn decompose<T: Eq>(pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
     let mut j = 0;
     let (mut hrp1_opt, mut hrp2_opt) = hrp(1, pattern);
