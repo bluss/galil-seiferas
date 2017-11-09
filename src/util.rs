@@ -1,5 +1,5 @@
 
-#[cfg(unused)]
+#[cfg(test)]
 use std::fmt;
 
 #[cfg(not(feature = "trace"))]
@@ -12,10 +12,10 @@ macro_rules! trace {
     ($($t:tt)*) => { println!($($t)*) }
 }
 
-#[cfg(unused)]
+#[cfg(test)]
 pub(crate) struct Bytestring<'a, T: 'a>(pub &'a [T]);
 
-#[cfg(unused)]
+#[cfg(test)]
 impl<'a> fmt::Display for Bytestring<'a, u8> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for &elt in self.0 {
