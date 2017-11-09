@@ -252,7 +252,8 @@ fn next_prefix_period(k: usize, period: usize) -> usize {
 // Let u = x[1 .. j] and v = x[j + 1 .. n]. Then the decomposition uv of x
 // is k-perfect for k >= 3.
 //
-fn decompose<T: Eq>(k: usize, pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
+fn decompose<T: Eq>(pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
+    let k = GS_K;
     let mut j = 0;
     let mut hrp1_opt = hrp(k, 1, pattern);
     loop {
@@ -279,13 +280,13 @@ fn decompose<T: Eq>(k: usize, pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
 #[test]
 fn test_decompose() {
     let s = b"banana";
-    assert_matches!(decompose(3, s), (_, _, None));
+    assert_matches!(decompose(s), (_, _, None));
     let s = b"aaabaaabaaabaabbbb";
-    assert_matches!(decompose(3, s), (_, _, None));
+    assert_matches!(decompose(s), (_, _, None));
     let s = b"abababababababababababcabcabcabcabc";
-    assert_matches!(decompose(3, s), (_, _, Some(Hrp { period: 2, len: _ })));
+    assert_matches!(decompose(s), (_, _, Some(Hrp { period: 2, len: _ })));
     let s = b"ananananananananan in the face";
-    assert_matches!(decompose(3, s), (_, _, Some(Hrp { period: 2, .. })));
+    assert_matches!(decompose(s), (_, _, Some(Hrp { period: 2, .. })));
 }
 
 #[test]
@@ -293,7 +294,7 @@ fn test_decompose_2() {
     let period = "aaaaacargo";
     let pattern = period.repeat(50 / period.len());
     let pattern = pattern.as_bytes();
-    let (u, v, hrp) = decompose(3, pattern);
+    let (u, v, hrp) = decompose(pattern);
     assert_eq!(u, &pattern[..u.len()]);
     assert_eq!(v, &pattern[u.len()..]);
     assert_matches!(hrp, Some(Hrp { period: 10, len: _ }));
@@ -336,7 +337,7 @@ pub fn gs_find<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
     }
 
     // preprocess the pattern into u, v
-    let (u, v, hrp1) = decompose(GS_K, pattern);
+    let (u, v, hrp1) = decompose(pattern);
 
     // find each occurence of v in the text; then check if u precedes it
     let mut pos = 0;
@@ -444,7 +445,6 @@ mod benches {
     use self::test::Bencher;
     use super::gs_find;
     use super::decompose;
-    use super::GS_K;
     use super::util::brute_force_search;
     use super::util::brute_force_fast;
 
@@ -456,7 +456,7 @@ mod benches {
         let pattern = period.repeat(DECOMPOSE_LEN / period.len());
 
         b.iter(|| {
-            decompose(GS_K, pattern.as_bytes());
+            decompose(pattern.as_bytes());
         });
         b.bytes = pattern.len() as u64;
     }
@@ -467,7 +467,7 @@ mod benches {
         let pattern = period.repeat(DECOMPOSE_LEN / period.len());
 
         b.iter(|| {
-            decompose(GS_K, pattern.as_bytes());
+            decompose(pattern.as_bytes());
         });
         b.bytes = pattern.len() as u64;
     }
