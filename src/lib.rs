@@ -80,6 +80,11 @@ fn test_has_prefix() {
     }
 }
 
+/// The value *k* is a “large enough integer” whose usage becomes clear below;
+/// [CS] shows k = 3 is the best, lowest value where the algorithm works
+/// unmodified.
+const GS_K: usize = 3;
+
 /// Highly-repeating-prefix (HRP)
 ///
 /// # Background
@@ -415,10 +420,6 @@ fn assert_perfect_decomposition<T: Eq>(k: usize, u: &[T], v: &[T]) {
     // ok
 }
 
-
-/// The value k is a “large enough integer”; [CS] shows k = 3 is the best,
-/// lowest value where the algorithm works (unmodified).
-const GS_K: usize = 3;
 
 /// This is the Galil-Seiferas string matching algorithm.
 ///
