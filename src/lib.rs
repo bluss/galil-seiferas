@@ -350,6 +350,20 @@ fn test_decompose_2() {
     assert_matches!(hrp, Some(Hrp { period: 10, len: _ }));
 }
 
+#[test]
+fn test_decompose_period_1() {
+    let period = "a";
+    let pattern = period.repeat(50 / period.len());
+    let pattern = pattern.as_bytes();
+    let (u, v, hrp) = decompose(pattern);
+    assert_matches!(::hrp(1, pattern), (Some(_), None));
+    println!("u, v = {}, {}", Bytestring(u), Bytestring(v));
+    assert_eq!(u, &pattern[..u.len()]);
+    assert_eq!(v, &pattern[u.len()..]);
+    assert_eq!(u.len(), 0);
+    assert_matches!(hrp, Some(Hrp { period: 1, len: 50 }));
+}
+
 /// Assert that the input = u v is a perfect factorization
 #[cfg(debug_assertions)]
 fn assert_perfect_decomp<T: Eq>(k: usize, input: (&[T], &[T])) {
