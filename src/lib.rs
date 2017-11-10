@@ -103,7 +103,7 @@ const GS_K: usize = 3;
 /// a “reasonably large integer” (GS use k = 4 but [CR] show that k = 3 works
 /// and is the smallest.)
 ///
-/// Find the first k-HRP with period >= `period`; return its period and 
+/// Find the two first k-HRP with period >= `period`; return its period and 
 /// the length of the prefix (and the length doesn't have to be a multiple of
 /// the period).
 ///
