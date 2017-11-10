@@ -86,35 +86,33 @@ const GS_K: usize = 3;
 ///
 /// # Background
 ///
-/// A string is *basic* if it is not of the form *a^i* for any word *a* and
-/// integer *i*.
+/// A string is *basic* if it is not of the form a^i for any word a and
+/// integer i.
 ///
 /// For example, "a", "aba", "abb" are basic and "aa", "abab" are not basic.
 ///
-/// A string z is a *prefix period* of w if it is basic and z^k is a prefix of w
-/// (and k is explained below).
+/// A string z is a *prefix period* of w if it is basic and z^i is a prefix of w
+/// for some integer i.
 ///
 /// For example, given w = "ababababa", z = "ab" is a prefix period.
 /// For example, given w = "aaaaaa", z = "a" is a prefix period and "aa" is not.
 ///
 /// # k-HRP
 ///
-/// k-HRP means a periodic prefix that consists of at least k periods where k is
-/// a “reasonably large integer” (GS use k = 4 but [CR] show that k = 3 works
-/// and is the smallest.)
+/// k-HRP means a periodic prefix that consists of at least k periods.
+/// (The length doesn't have to be a multiple of the period.)
 ///
-/// Find the two first k-HRP with period >= `period`; return its period and 
-/// the length of the prefix (and the length doesn't have to be a multiple of
-/// the period).
+/// This function finds the two first k-HRP with period >= `period`; return each
+/// as an optional Hrp value.
 ///
 /// Examples:
 ///
 /// x: a a a a b b b
-///   |-|-|-|-|
+///   |.|.|.|.|
 ///    HRP(x) period=1, len=4
 ///
 /// x: a b a b a b a b a c
-///   |---|---|---|---|-|
+///   |...|...|...|...|.
 ///    HRP(x) period=2, len=9
 ///
 /// Throughout we say HRP1(x) for the first HRP of x, HRP2(x) for the second HRP
