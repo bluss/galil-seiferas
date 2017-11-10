@@ -709,4 +709,47 @@ mod benches {
         b.bytes = haystack.len() as u64;
     }
 
+    #[bench]
+    fn bench_gs_strings_bad(b: &mut Bencher) {
+        let n = 50;
+        let haystack_s = ("bacbax".repeat(n - 1) + "bbbbb").repeat(n);
+        let needle_s = "bacbax".repeat(n);
+        let haystack: Vec<_> = haystack_s.split("x").collect();
+        let needle: Vec<_> = needle_s.split("x").collect();
+        b.iter(|| {
+            gs_find(&haystack, &needle)
+        });
+    }
+
+    #[bench]
+    fn bench_brute_strings_bad(b: &mut Bencher) {
+        let n = 50;
+        let haystack_s = ("bacbax".repeat(n - 1) + "bbbbb").repeat(n);
+        let needle_s = "bacbax".repeat(n);
+        let haystack: Vec<_> = haystack_s.split("x").collect();
+        let needle: Vec<_> = needle_s.split("x").collect();
+        b.iter(|| {
+            brute_force_fast(&haystack, &needle)
+        });
+    }
+
+    #[bench]
+    fn bench_gs_strings_good(b: &mut Bencher) {
+        let n = 200;
+        let haystack: Vec<_> = (0..n).map(|i| format!("foo{}", i)).collect();
+        let needle: Vec<_> = (n - 10..n).map(|i| format!("foo{}", i)).collect();
+        b.iter(|| {
+            gs_find(&haystack, &needle)
+        });
+    }
+
+    #[bench]
+    fn bench_brute_strings_good(b: &mut Bencher) {
+        let n = 200;
+        let haystack: Vec<_> = (0..n).map(|i| format!("foo{}", i)).collect();
+        let needle: Vec<_> = (n - 10..n).map(|i| format!("foo{}", i)).collect();
+        b.iter(|| {
+            brute_force_fast(&haystack, &needle)
+        });
+    }
 }
