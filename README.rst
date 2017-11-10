@@ -46,14 +46,12 @@ The G-S algorithm is ``gs_find``; the KMP algorithm (in a simple implementation)
   test naive_rev::kmp_find                    ... bench:         513 ns/iter (+/- 2) = 487 MB/s
   test naive_rev::memmem                      ... bench:          11 ns/iter (+/- 0) = 22727 MB/s
   test naive_rev::naive_search                ... bench:       1,457 ns/iter (+/- 69) = 171 MB/s
-  test naive_rev::regex_find                  ... bench:         873 ns/iter (+/- 30) = 286 MB/s
   test short_word1_long::bmh_find             ... bench:       1,505 ns/iter (+/- 94) = 1695 MB/s
   test short_word1_long::find                 ... bench:         743 ns/iter (+/- 43) = 3433 MB/s
   test short_word1_long::gs_find              ... bench:       7,608 ns/iter (+/- 482) = 335 MB/s  // NOTE
   test short_word1_long::kmp_find             ... bench:       6,489 ns/iter (+/- 175) = 393 MB/s
   test short_word1_long::memmem               ... bench:       1,612 ns/iter (+/- 45) = 1582 MB/s
   test short_word1_long::naive_search         ... bench:      15,386 ns/iter (+/- 842) = 165 MB/s
-  test short_word1_long::regex_find           ... bench:       6,879 ns/iter (+/- 453) = 370 MB/s
 
 
 License
