@@ -158,26 +158,18 @@ fn hrp<T: Eq>(mut period: usize, pattern: &[T]) -> (Option<Hrp>, Option<Hrp>) {
             //
             period = j;
             j = 0;
-            trace!("period = j (={})", period);
-            trace!("j = {}", j);
-            continue;
         } else {
-            if let Some(ref hrp1) = hrp1 {
-                let scope_l = hrp1.period * 2;
-                let scope_r = hrp1.len;
-                if j >= scope_l && j <= scope_r {
-                    period += scope_l / 2;
-                    j -= scope_l / 2;
-                    trace!("period += {} (={})", scope_l / 2, period);
-                    trace!("j -= {} (={})", scope_l / 2, j);
-                    continue;
+            match hrp1 {
+                Some(ref hrp1) if j >= hrp1.period * 2 && j <= hrp1.len => {
+                    period += hrp1.period;
+                    j -= hrp1.period;
+                }
+                _ => {
+                    period += j / k + 1;
+                    j = 0;
                 }
             }
         }
-        period += j / k + 1;
-        trace!("period += {} (={})", j / k + 1, period);
-        j = 0;
-        trace!("j = {}", j);
     }
     (hrp1, None)
 }
