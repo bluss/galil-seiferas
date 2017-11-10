@@ -6,5 +6,5 @@ N=250000
 D=$(dirname "$0")
 
 for file in "$D"/run*.sh ; do
-	$file -runs=$N
+	$file -runs=$N "$@"
 done
