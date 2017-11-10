@@ -32,3 +32,7 @@ path = "fuzz_targets/fuzz_target_3.rs"
 [[bin]]
 name = "debug_asserts"
 path = "fuzz_targets/debug_asserts.rs"
+
+[[bin]]
+name = "known_substring"
+path = "fuzz_targets/known_substring.rs"
