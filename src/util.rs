@@ -2,16 +2,6 @@
 #[cfg(test)]
 use std::fmt;
 
-#[cfg(not(feature = "trace"))]
-macro_rules! trace {
-    ($($t:tt)*) => { () }
-}
-
-#[cfg(feature = "trace")]
-macro_rules! trace {
-    ($($t:tt)*) => { println!($($t)*) }
-}
-
 #[cfg(test)]
 pub(crate) struct Bytestring<'a, T: 'a>(pub &'a [T]);
 
