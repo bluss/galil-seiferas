@@ -8,7 +8,7 @@ authors = ["bluss"]
 
 repository = "https://github.com/bluss/galil-seiferas"
 documentation = "https://docs.rs/galil-seiferas/"
-
+readme = "README-crates.io.md"
 
 description = "General string search in constant space, linear time, for nonorderable alphabets."
 

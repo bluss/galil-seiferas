@@ -8,8 +8,6 @@ fn gs_find<T>(text: &[T], pattern: &[T]) -> Option<usize>
 where T: Eq
 {
     // ...
-# drop((text, pattern));
-# unimplemented!()
 }
 ```
 
@@ -23,6 +21,10 @@ This work is Copyright 2017 by Ulrik Sverdrup "bluss"; see license terms
 in the package.
 
 # References
+
+Both papers are recommended reading. The comments in this crate’s
+implementation are also meant to explain and point out important details,
+so that’s recommended reading too.
 
 - [GS] Z. Galil and J. Seiferas,
 *Time-Space-Optimal String Matching*,
