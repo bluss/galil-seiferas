@@ -192,6 +192,19 @@ fn test_hrp_length() {
     assert_matches!(hrp(1, s.as_bytes()), (None, None));
 }
 
+#[test]
+fn test_hrp_fuzz_1() {
+    // this input is tricky because hrp1.len < hrp2.period
+    let s = b"baababaababaabaababaabaabaababaababaabaababaabaabaababaababaabaab\
+            abaabaababaababaabaababaabaababaababaabaababaababaabababaabaababaab\
+            abaabaababaababaabaababaababaabaababaabaab";
+    let hrps = hrp(1, s);
+    assert_matches!(hrps, (Some(Hrp { period: 5, len: 15 }), Some(Hrp { period: 24, len: 74 })));
+    let (u, _, hrp1) = decompose(s);
+    assert_eq!(u.len(), 5);
+    assert_matches!(hrp1, None);
+}
+
 #[cfg(any(test, debug_assertions))]
 fn find_k_hrp<T: Eq>(period: usize, x: &[T]) -> Option<usize> {
     let mut pos = 0;
@@ -224,28 +237,6 @@ struct Hrp {
     len: usize,
 }
 
-impl Hrp {
-    /// The special position for HRP1(x) with period v
-    /// is the length of v1 ... vi where i is the maximal integer
-    /// where |v1 ... vi| < |HRP2(x)|
-    ///
-    /// Taking |HRP2(x)| to mean the period of HRP2.
-    ///
-    /// cf. length of prefix period in [GS]
-    fn special_position(&self, hrp2: &Self) -> usize {
-        let max = hrp2.period - 1;
-        debug_assert!(max >= 1);
-        // avoid division in the most common cases
-        max - (match self.period {
-            1 => 0,
-            2 => max % 2,
-            3 => max % 3,
-            other => max % other,
-        })
-    }
-}
-
-
 /// Decompose `pattern` into two words u, v where u is "short" and v is k-simple.
 ///
 /// When *k* >= 3, words satisfy a remarkable combinatorial property:
@@ -275,6 +266,10 @@ impl Hrp {
 /// v1 is HRP1(x); let x' = v1 x, then v2 is HRP1(x') until there are no
 /// more HRP1.
 ///
+/// cf. length of prefix period in [GS]
+///
+/// Define: |HRP(x)| to mean the period of HRP(x) (a prefix period of x).
+///
 /// Define i: greatest integer where |v1 ... v_i| < |HRP2(x)|
 /// if v_i+1 exists, |v_i+1| >= |HRP2(x)|
 ///
@@ -296,15 +291,20 @@ fn decompose<T: Eq>(pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
     loop {
         if let Some(hrp1) = hrp1_opt {
             if let Some(hrp2) = hrp2_opt {
-                // x' = x[j..]
-                j += hrp1.special_position(&hrp2);
+                // if x = v1 x' where v1 is a prefix period of x (v1 is HRP1)
+                // x' = x[p..] where p = |v1|
+                j += hrp1.period;
 
-                // compute HRP1(x') and HRP2(x')
                 // size is nondecreasing: so use the HRP1(x) period.
+                // compute HRP1(x') and HRP2(x')
                 let (h1, h2) = hrp(hrp1.period, get!(pattern, j..));
                 hrp1_opt = h1;
-                hrp2_opt = h2;
-                continue;
+                if let Some(ref hrp1) = hrp1_opt {
+                    if hrp1.period >= hrp2.period {
+                        hrp2_opt = h2;
+                    }
+                    continue;
+                }
             }
         }
         break;
@@ -456,7 +456,7 @@ fn test_gs_find_vs_str_find() {
 
 #[test]
 fn test_gs_find2() {
-    // found by cargo fuzz; proves need of scope_l/scope_r check in hrp
+    // found by cargo fuzz; no bug but proved the need of scope_l/scope_r check in hrp
     let s = "\x0abaaabaaabaaabaaabaaabbbbb";
     let n = "aaabaaabaaabaaabbbbb";
     test_str!(s, n);
