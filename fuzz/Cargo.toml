@@ -22,17 +22,9 @@ name = "fuzz_target_1"
 path = "fuzz_targets/fuzz_target_1.rs"
 
 [[bin]]
-name = "fuzz_target_2"
-path = "fuzz_targets/fuzz_target_2.rs"
-
-[[bin]]
-name = "fuzz_target_3"
-path = "fuzz_targets/fuzz_target_3.rs"
-
-[[bin]]
-name = "debug_asserts"
-path = "fuzz_targets/debug_asserts.rs"
-
-[[bin]]
 name = "known_substring"
 path = "fuzz_targets/known_substring.rs"
+
+[[bin]]
+name = "decomposition"
+path = "fuzz_targets/decomposition.rs"

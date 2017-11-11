@@ -119,7 +119,10 @@ const GS_K: usize = 3;
 /// of x, etc. *Note* that a second HRP also starts from the beginning of x,
 /// it just has a greater period.
 ///
-fn hrp<T: Eq>(mut period: usize, pattern: &[T]) -> (Option<Hrp>, Option<Hrp>) {
+/// Compute HRP2, if the period for HRP1 is >= hrp2_period
+fn hrp<T: Eq>(mut period: usize, pattern: &[T], hrp2_period: usize)
+    -> (Option<Hrp>, Option<Hrp>)
+{
     let k = GS_K;
     let m = pattern.len();
     let mut j = 0;
@@ -138,7 +141,12 @@ fn hrp<T: Eq>(mut period: usize, pattern: &[T]) -> (Option<Hrp>, Option<Hrp>) {
             let next_hrp = Some(Hrp { period: period, len: prefix_length });
             match hrp1 {
                 Some(_) => return (hrp1, next_hrp),
-                None => hrp1 = next_hrp,
+                None => {
+                    hrp1 = next_hrp;
+                    if period < hrp2_period {
+                        break;
+                    }
+                }
             }
 
             // period, j adjustments from [GS] An Integrated Implementation.
@@ -177,19 +185,32 @@ fn test_hrp() {
     let s = b"aabaabaabaabaabaabbbb";
 
     println!("s: {}", Bytestring(s));
-    assert_matches!(hrp(1, s), (Some(Hrp { period: 3, len: 18 }), None));
-    assert_matches!(hrp(2, s), (Some(Hrp { period: 3, len: 18 }), None));
-    assert_matches!(hrp(4, s), (Some(Hrp { period: 6, len: 18 }), None));
-    assert_matches!(hrp(6, s), (Some(Hrp { period: 6, len: 18 }), None));
+    assert_matches!(hrp(1, s, 0), (Some(Hrp { period: 3, len: 18 }), None));
+    assert_matches!(hrp(2, s, 0), (Some(Hrp { period: 3, len: 18 }), None));
+    assert_matches!(hrp(4, s, 0), (Some(Hrp { period: 6, len: 18 }), None));
+    assert_matches!(hrp(6, s, 0), (Some(Hrp { period: 6, len: 18 }), None));
 }
 
 #[test]
 fn test_hrp_length() {
     // test a string short one char
     let mut s = "aab".repeat(GS_K);
-    assert_matches!(hrp(1, s.as_bytes()), (Some(Hrp { period: 3, .. }), None));
+    assert_matches!(hrp(1, s.as_bytes(), 0), (Some(Hrp { period: 3, .. }), None));
     s.pop();
-    assert_matches!(hrp(1, s.as_bytes()), (None, None));
+    assert_matches!(hrp(1, s.as_bytes(), 0), (None, None));
+}
+
+#[test]
+fn test_hrp_fuzz_1() {
+    // this input is tricky because hrp1.len < hrp2.period
+    let s = b"baababaababaabaababaabaabaababaababaabaababaabaabaababaababaabaab\
+            abaabaababaababaabaababaabaababaababaabaababaababaabababaabaababaab\
+            abaabaababaababaabaababaababaabaababaabaab";
+    let hrps = hrp(1, s, 0);
+    assert_matches!(hrps, (Some(Hrp { period: 5, len: 15 }), Some(Hrp { period: 24, len: 74 })));
+    let (u, _, hrp1) = decompose(s);
+    assert_eq!(u.len(), 5);
+    assert_matches!(hrp1, None);
 }
 
 #[cfg(any(test, debug_assertions))]
@@ -224,28 +245,6 @@ struct Hrp {
     len: usize,
 }
 
-impl Hrp {
-    /// The special position for HRP1(x) with period v
-    /// is the length of v1 ... vi where i is the maximal integer
-    /// where |v1 ... vi| < |HRP2(x)|
-    ///
-    /// Taking |HRP2(x)| to mean the period of HRP2.
-    ///
-    /// cf. length of prefix period in [GS]
-    fn special_position(&self, hrp2: &Self) -> usize {
-        let max = hrp2.period - 1;
-        debug_assert!(max >= 1);
-        // avoid division in the most common cases
-        max - (match self.period {
-            1 => 0,
-            2 => max % 2,
-            3 => max % 3,
-            other => max % other,
-        })
-    }
-}
-
-
 /// Decompose `pattern` into two words u, v where u is "short" and v is k-simple.
 ///
 /// When *k* >= 3, words satisfy a remarkable combinatorial property:
@@ -275,6 +274,10 @@ impl Hrp {
 /// v1 is HRP1(x); let x' = v1 x, then v2 is HRP1(x') until there are no
 /// more HRP1.
 ///
+/// cf. length of prefix period in [GS]
+///
+/// Define: |HRP(x)| to mean the period of HRP(x) (a prefix period of x).
+///
 /// Define i: greatest integer where |v1 ... v_i| < |HRP2(x)|
 /// if v_i+1 exists, |v_i+1| >= |HRP2(x)|
 ///
@@ -292,19 +295,24 @@ impl Hrp {
 ///
 fn decompose<T: Eq>(pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
     let mut j = 0;
-    let (mut hrp1_opt, mut hrp2_opt) = hrp(1, pattern);
+    let (mut hrp1_opt, mut hrp2_opt) = hrp(1, pattern, 0);
     loop {
         if let Some(hrp1) = hrp1_opt {
             if let Some(hrp2) = hrp2_opt {
-                // x' = x[j..]
-                j += hrp1.special_position(&hrp2);
+                // if x = v1 x' where v1 is a prefix period of x (v1 is HRP1)
+                // x' = x[p..] where p = |v1|
+                j += hrp1.period;
 
-                // compute HRP1(x') and HRP2(x')
                 // size is nondecreasing: so use the HRP1(x) period.
-                let (h1, h2) = hrp(hrp1.period, get!(pattern, j..));
+                // compute HRP1(x') and (if needed) HRP2(x')
+                let (h1, h2) = hrp(hrp1.period, get!(pattern, j..), hrp2.period);
                 hrp1_opt = h1;
-                hrp2_opt = h2;
-                continue;
+                if let Some(ref hrp1) = h1 {
+                    if hrp1.period >= hrp2.period {
+                        hrp2_opt = h2;
+                    }
+                    continue;
+                }
             }
         }
         break;
@@ -324,8 +332,7 @@ fn test_decompose() {
     let s = "aaab".repeat(4) + "bbbb";
     let (u, v, hrp) = decompose(s.as_bytes());
     println!("u,v = {},{} hrp1={:?}", Bytestring(u), Bytestring(v), hrp);
-    assert_eq!(u.len(), 3);
-    assert_matches!(hrp, Some(Hrp { period: 4, len: 13 }));
+    assert_matches!(hrp, Some(Hrp { period: 4, len: 15 }));
 
     let s = String::from("aaa") + &"ab".repeat(4);
     let (u, v, hrp) = decompose(s.as_bytes());
@@ -336,8 +343,8 @@ fn test_decompose() {
     let s = b"aaabaaabaaabaabbbb";
     let (u, v, hrp) = decompose(s);
     println!("u,v = {},{} hrp1={:?}", Bytestring(u), Bytestring(v), hrp);
-    assert_eq!(u.len(), 3);
-    assert_matches!(hrp, None);
+    assert_eq!(u.len(), 1);
+    assert_matches!(hrp, Some(Hrp { period: 4, .. }));
 
     let s = b"abababababababababababcabcabcabcabc";
     assert_matches!(decompose(s), (_, _, Some(Hrp { period: 2, len: _ })));
@@ -353,6 +360,7 @@ fn test_decompose_2() {
     let (u, v, hrp) = decompose(pattern);
     assert_eq!(u, &pattern[..u.len()]);
     assert_eq!(v, &pattern[u.len()..]);
+    assert_eq!(u.len(), 3);
     assert_matches!(hrp, Some(Hrp { period: 10, len: _ }));
 }
 
@@ -362,7 +370,7 @@ fn test_decompose_period_1() {
     let pattern = period.repeat(50 / period.len());
     let pattern = pattern.as_bytes();
     let (u, v, hrp) = decompose(pattern);
-    assert_matches!(::hrp(1, pattern), (Some(_), None));
+    assert_matches!(::hrp(1, pattern, 0), (Some(_), None));
     println!("u, v = {}, {}", Bytestring(u), Bytestring(v));
     assert_eq!(u, &pattern[..u.len()]);
     assert_eq!(v, &pattern[u.len()..]);
@@ -389,7 +397,7 @@ fn assert_perfect_decomposition<T: Eq>(k: usize, u: &[T], v: &[T]) {
     // that u is "short" and v is k-simple.
     // k-simple means it has at most one k-HRP which also means it has no k-HRP2
     assert!(k >= 3);
-    if let (Some(hrp1), hrp2) = hrp(1, v) {
+    if let (Some(hrp1), hrp2) = hrp(1, v, 0) {
         if let Some(hrp2) = hrp2 {
             panic!("Factorization u, v = {} , {} is not k-simple because
                     v's {}-HRP1 is {:?} and {}-HRP2 is {:?}",
@@ -430,6 +438,7 @@ pub fn gs_find<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
     None
 }
 
+// Test that gs_find(text, pat) has the same result as str::find
 #[cfg(test)]
 defmac!(test_str text, pat => assert_eq!(text.find(pat), gs_find(text.as_bytes(), pat.as_bytes())));
 
@@ -455,10 +464,43 @@ fn test_gs_find_vs_str_find() {
 
 #[test]
 fn test_gs_find2() {
-    // found by cargo fuzz; proves need of scope_l/scope_r check in hrp
+    // found by cargo fuzz; no bug but proved the need of scope_l/scope_r check in hrp
     let s = "\x0abaaabaaabaaabaaabaaabbbbb";
     let n = "aaabaaabaaabaaabbbbb";
     test_str!(s, n);
+}
+
+// Test that the substring &text[range] is found inside text.
+// Note that we can only find the first of identical substrings.
+#[cfg(test)]
+defmac!(assert_find_substring text, range => {
+    let text = &text[..];
+    let needle = &text[range.clone()];
+    assert!(text_has_prefix(&text[range.start..], needle),
+            "buggy test: not a substring at {:?}", range);
+    assert_eq!(Some(range.start), gs_find(text, needle));
+});
+
+
+#[test]
+fn test_find_fuzz_1() {
+    // cargo fuzz found this one, but it required feeding it with fib words as dict
+    let data = b"\x9caababaababaabaababaababaabaababaabaabaababaababaabaababaab\
+               aabaababaababaabaababaabaababaababaabaababaabaababaababaabaababa\
+               ababaabababaabaababaababaabaababaababaabaababaababaabaababaabaab\
+               \x9c\x9c\x9cbaabaabababaabababaabababaabaababaabaab\x9c\x9c\x9c\
+               \x9c\x9c\x28\x9c\x9c\x9c\x9c\x9c\x9c\x2a\x9c\x9c\x9c\x9c\x9c\x9c\
+               \x9caabaababaabaab\x9c\x9c\x9c\x9c\x9c\x28\x9c\x9c\x9c\x9c\x9c\
+               \x9c\x9c\x9c\x27\x9c\x9c\x9c\x9c\x9c\x9c\x9c\x9c\x9c";
+    assert_find_substring!(data, 13 .. 13 + 266);
+}
+
+#[test]
+fn test_find_fuzz_2() {
+    let data = b"abaabaababaababaabaababaabaababababaabaababababaabaababababaab\
+               aababaab\xffaabaabaab\x00\x00\xff\x28\xffaab\xffaabaabaab\x00\
+               \x00\xff\x28\xff";
+    assert_find_substring!(data, 21..21 + 68);
 }
 
 /// Search `text` for the `pattern` with the requirement that the pattern
@@ -471,7 +513,7 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
     -> Option<usize>
 {
     debug_assert!(pattern.len() <= text.len());
-    debug_assert_eq!(hrp(1, pattern).0, *hrp1);
+    debug_assert_eq!(hrp(1, pattern, 0).0, *hrp1);
 
     let n = text.len();
     let m = pattern.len();
