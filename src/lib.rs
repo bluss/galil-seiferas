@@ -324,8 +324,7 @@ fn test_decompose() {
     let s = "aaab".repeat(4) + "bbbb";
     let (u, v, hrp) = decompose(s.as_bytes());
     println!("u,v = {},{} hrp1={:?}", Bytestring(u), Bytestring(v), hrp);
-    assert_eq!(u.len(), 3);
-    assert_matches!(hrp, Some(Hrp { period: 4, len: 13 }));
+    assert_matches!(hrp, Some(Hrp { period: 4, len: 15 }));
 
     let s = String::from("aaa") + &"ab".repeat(4);
     let (u, v, hrp) = decompose(s.as_bytes());
@@ -336,8 +335,8 @@ fn test_decompose() {
     let s = b"aaabaaabaaabaabbbb";
     let (u, v, hrp) = decompose(s);
     println!("u,v = {},{} hrp1={:?}", Bytestring(u), Bytestring(v), hrp);
-    assert_eq!(u.len(), 3);
-    assert_matches!(hrp, None);
+    assert_eq!(u.len(), 1);
+    assert_matches!(hrp, Some(Hrp { period: 4, .. }));
 
     let s = b"abababababababababababcabcabcabcabc";
     assert_matches!(decompose(s), (_, _, Some(Hrp { period: 2, len: _ })));
@@ -353,6 +352,7 @@ fn test_decompose_2() {
     let (u, v, hrp) = decompose(pattern);
     assert_eq!(u, &pattern[..u.len()]);
     assert_eq!(v, &pattern[u.len()..]);
+    assert_eq!(u.len(), 3);
     assert_matches!(hrp, Some(Hrp { period: 10, len: _ }));
 }
 
