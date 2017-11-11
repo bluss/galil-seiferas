@@ -99,10 +99,7 @@ macro_attr! {
     struct FibWord(String);
 }
 
-// The letters of the fib alphabet
-const F0: char = 'a';
-const F1: char = 'b';
-
+// The letters of the fib alphabet are a and b
 const S0: &str = "a";
 const S1: &str = "ab";
 
@@ -129,6 +126,21 @@ impl FibWord {
 fn test_fib_word() {
     assert_eq!(&*FibWord::new(2), "aba");
     assert_eq!(&*FibWord::new(4), "abaababa");
+}
+
+quickcheck! {
+    #[ignore]
+    fn generate_dict_fibwords(word: FibWord) -> () {
+        // Write a fuzz dictionary
+        use std::io::Write;
+        use std::fs::OpenOptions;
+        let mut f = OpenOptions::new()
+            .write(true)
+            .append(true)
+            .create(true)
+            .open("dict-fibwords").unwrap();
+        writeln!(f, "{:?}", word.as_str()).unwrap();
+    }
 }
 
 impl Arbitrary for FibWord {
