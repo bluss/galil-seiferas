@@ -20,11 +20,13 @@ Recent Changes
 
 - 0.1.1
 
-  - Fix bug in decompose (#1)
+  - Fix bug in decompose (`#1`_)
 
 - 0.1.0
 
   - Initial release
+
+.. _#1: https://github.com/bluss/galil-seiferas/pull/1
 
 
 Benchmarks
