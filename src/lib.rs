@@ -604,6 +604,16 @@ mod benches {
         b.bytes = pattern.len() as u64;
     }
 
+    #[bench]
+    fn bench_g_decompose_normal1(b: &mut Bencher) {
+        let pattern = "english";
+
+        b.iter(|| {
+            decompose(pattern.as_bytes());
+        });
+        b.bytes = pattern.len() as u64;
+    }
+
     defmac!(haystack n => ("ab".repeat(n - 1) + "bb").repeat(n));
     defmac!(haystack_inv n => (String::from("bb") + &"ab".repeat(n - 1)).repeat(n));
 
