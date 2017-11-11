@@ -430,6 +430,7 @@ pub fn gs_find<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
     None
 }
 
+// Test that gs_find(text, pat) has the same result as str::find
 #[cfg(test)]
 defmac!(test_str text, pat => assert_eq!(text.find(pat), gs_find(text.as_bytes(), pat.as_bytes())));
 
@@ -459,6 +460,39 @@ fn test_gs_find2() {
     let s = "\x0abaaabaaabaaabaaabaaabbbbb";
     let n = "aaabaaabaaabaaabbbbb";
     test_str!(s, n);
+}
+
+// Test that the substring &text[range] is found inside text.
+// Note that we can only find the first of identical substrings.
+#[cfg(test)]
+defmac!(assert_find_substring text, range => {
+    let text = &text[..];
+    let needle = &text[range.clone()];
+    assert!(text_has_prefix(&text[range.start..], needle),
+            "buggy test: not a substring at {:?}", range);
+    assert_eq!(Some(range.start), gs_find(text, needle));
+});
+
+
+#[test]
+fn test_find_fuzz_1() {
+    // cargo fuzz found this one, but it required feeding it with fib words as dict
+    let data = b"\x9caababaababaabaababaababaabaababaabaabaababaababaabaababaab\
+               aabaababaababaabaababaabaababaababaabaababaabaababaababaabaababa\
+               ababaabababaabaababaababaabaababaababaabaababaababaabaababaabaab\
+               \x9c\x9c\x9cbaabaabababaabababaabababaabaababaabaab\x9c\x9c\x9c\
+               \x9c\x9c\x28\x9c\x9c\x9c\x9c\x9c\x9c\x2a\x9c\x9c\x9c\x9c\x9c\x9c\
+               \x9caabaababaabaab\x9c\x9c\x9c\x9c\x9c\x28\x9c\x9c\x9c\x9c\x9c\
+               \x9c\x9c\x9c\x27\x9c\x9c\x9c\x9c\x9c\x9c\x9c\x9c\x9c";
+    assert_find_substring!(data, 13 .. 13 + 266);
+}
+
+#[test]
+fn test_find_fuzz_2() {
+    let data = b"abaabaababaababaabaababaabaababababaabaababababaabaababababaab\
+               aababaab\xffaabaabaab\x00\x00\xff\x28\xffaab\xffaabaabaab\x00\
+               \x00\xff\x28\xff";
+    assert_find_substring!(data, 21..21 + 68);
 }
 
 /// Search `text` for the `pattern` with the requirement that the pattern
