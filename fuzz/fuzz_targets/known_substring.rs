@@ -19,7 +19,7 @@ fuzz_target!(|data: &[u8]| {
         if let Some(i) = find_result {
             assert!(i <= first, "i={} must be leq first={}", i, first);
         } else {
-            panic!("Expected match at first={}", first);
+            panic!("Expected match at first={}\ndata={:?}, needle={:?}", first, data, needle);
         }
     }
 });
