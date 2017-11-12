@@ -3,7 +3,5 @@
 extern crate galil_seiferas;
 
 fuzz_target!(|data: &[u8]| {
-    if let Some((_, tail)) = data.split_first() {
-        galil_seiferas::gs_find(data, tail);
-    }
+    galil_seiferas::gs_find(data, data);
 });
