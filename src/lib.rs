@@ -131,13 +131,14 @@ const GS_K: usize = 3;
 /// it just has a greater period.
 ///
 /// Compute HRP2, if the period for HRP1 is >= hrp2_period
-fn hrp<T: Eq>(mut period: usize, pattern: &[T], hrp2_period: usize)
+fn hrp<T: Eq>(mut period: usize, pattern: &[T], hrp2_period: Option<usize>)
     -> (Option<Hrp>, Option<Hrp>)
 {
     let k = GS_K;
     let m = pattern.len();
     let mut j = 0;
     let mut hrp1 = None;
+    let hrp2_period_limit = hrp2_period.unwrap_or(0);
 
     while period + j < m {
         // find the greatest length (period + j) with the same period
@@ -154,7 +155,7 @@ fn hrp<T: Eq>(mut period: usize, pattern: &[T], hrp2_period: usize)
                 Some(_) => return (hrp1, next_hrp),
                 None => {
                     hrp1 = next_hrp;
-                    if period < hrp2_period {
+                    if period < hrp2_period_limit {
                         break;
                     }
                 }
@@ -196,11 +197,11 @@ fn test_hrp_1() {
     let s = b"aabaabaabaabaabaabbbb";
 
     println!("s: {}", Bytestring(s));
-    assert_matches!(hrp(1, s, 0), (Some(Hrp { period: 3, len: 18 }), None));
-    assert_matches!(hrp(2, s, 0), (Some(Hrp { period: 3, len: 18 }), None));
+    assert_matches!(hrp(1, s, None), (Some(Hrp { period: 3, len: 18 }), None));
+    assert_matches!(hrp(2, s, None), (Some(Hrp { period: 3, len: 18 }), None));
     // the next is not a proper HRP since it is not basic (we're calling it with
     // a too low starting period)
-    assert_matches!(hrp(4, s, 0), (Some(Hrp { period: 6, len: 18 }), None));
+    assert_matches!(hrp(4, s, None), (Some(Hrp { period: 6, len: 18 }), None));
 }
 
 #[test]
@@ -208,7 +209,7 @@ fn test_hrp_2() {
     //        1..
     //        2222...|...|..
     let s = b"aaabaaabaaabaa";
-    assert_matches!(hrp(1, s, 0),
+    assert_matches!(hrp(1, s, None),
                     (Some(Hrp { period: 1, len: 3 }),
                      Some(Hrp { period: 4, len: 14 })));
 }
@@ -217,9 +218,9 @@ fn test_hrp_2() {
 fn test_hrp_length() {
     // test a string short one char
     let mut s = "aab".repeat(GS_K);
-    assert_matches!(hrp(1, s.as_bytes(), 0), (Some(Hrp { period: 3, .. }), None));
+    assert_matches!(hrp(1, s.as_bytes(), None), (Some(Hrp { period: 3, .. }), None));
     s.pop();
-    assert_matches!(hrp(1, s.as_bytes(), 0), (None, None));
+    assert_matches!(hrp(1, s.as_bytes(), None), (None, None));
 }
 
 #[test]
@@ -228,7 +229,7 @@ fn test_hrp_fuzz_1() {
     let s = b"baababaababaabaababaabaabaababaababaabaababaabaabaababaababaabaab\
             abaabaababaababaabaababaabaababaababaabaababaababaabababaabaababaab\
             abaabaababaababaabaababaababaabaababaabaab";
-    let hrps = hrp(1, s, 0);
+    let hrps = hrp(1, s, None);
     assert_matches!(hrps, (Some(Hrp { period: 5, len: 15 }), Some(Hrp { period: 24, len: 74 })));
     let (u, _, hrp1) = decompose(s);
     assert_eq!(u.len(), 5);
@@ -317,7 +318,7 @@ struct Hrp {
 ///
 fn decompose<T: Eq>(pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
     let mut j = 0;
-    let (mut hrp1_opt, mut hrp2_opt) = hrp(1, pattern, 0);
+    let (mut hrp1_opt, mut hrp2_opt) = hrp(1, pattern, None);
     loop {
         if let Some(hrp1) = hrp1_opt {
             if let Some(hrp2) = hrp2_opt {
@@ -325,9 +326,10 @@ fn decompose<T: Eq>(pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
                 // x' = x[p..] where p = |v1|
                 j += hrp1.period;
 
-                // size is nondecreasing: so use the HRP1(x) period.
+                // size is nondecreasing: so start with the HRP1(x) period.
                 // compute HRP1(x') and (if needed) HRP2(x')
-                let (h1, h2) = hrp(hrp1.period, get!(pattern, j..), hrp2.period);
+                let (h1, h2) = hrp(hrp1.period, get!(pattern, j..),
+                                   Some(hrp2.period));
                 hrp1_opt = h1;
                 if let Some(ref hrp1) = h1 {
                     if hrp1.period >= hrp2.period {
@@ -392,7 +394,7 @@ fn test_decompose_period_1() {
     let pattern = period.repeat(50 / period.len());
     let pattern = pattern.as_bytes();
     let (u, v, hrp) = decompose(pattern);
-    assert_matches!(::hrp(1, pattern, 0), (Some(_), None));
+    assert_matches!(::hrp(1, pattern, None), (Some(_), None));
     println!("u, v = {}, {}", Bytestring(u), Bytestring(v));
     assert_eq!(u, &pattern[..u.len()]);
     assert_eq!(v, &pattern[u.len()..]);
@@ -435,7 +437,7 @@ fn assert_perfect_decomposition<T: Eq>(k: usize, u: &[T], v: &[T]) {
     // that u is "short" and v is k-simple.
     // k-simple means it has at most one k-HRP which also means it has no k-HRP2
     assert!(k >= 3);
-    if let (Some(hrp1), hrp2) = hrp(1, v, 0) {
+    if let (Some(hrp1), hrp2) = hrp(1, v, None) {
         if let Some(hrp2) = hrp2 {
             panic!("Factorization u, v = {} , {} is not k-simple because
                     v's {}-HRP1 is {:?} and {}-HRP2 is {:?}",
@@ -551,7 +553,7 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
     -> Option<usize>
 {
     debug_assert!(pattern.len() <= text.len());
-    debug_assert_eq!(hrp(1, pattern, 0).0, *hrp1);
+    debug_assert_eq!(hrp(1, pattern, None).0, *hrp1);
 
     let n = text.len();
     let m = pattern.len();
