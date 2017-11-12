@@ -61,8 +61,16 @@ pub use util::brute_force_search;
 
 
 /// Test if `text` starts with `pattern`.
+// One can use either a direct loop here, or use the libcore == for slices
+// the latter will for example call memcmp in some situations.
+// This function is intended for our use case here, where the (prefix of the)
+// pattern is very short or empty
 fn text_has_prefix<T: Eq>(text: &[T], pattern: &[T]) -> bool {
-    get!(text, ..pattern.len()) == pattern
+    debug_assert!(pattern.len() <= text.len());
+    for i in 0..pattern.len() {
+        if get!(text, i) != get!(pattern, i) { return false; }
+    }
+    true
 }
 
 #[test]
