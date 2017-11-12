@@ -389,9 +389,13 @@ fn test_contains_substrings() {
 #[test]
 fn test_find_period() {
     fn prop(a: SimpleText, b: Short<SimpleText>) -> TestResult {
-        let a = &a.0;
+        let mut a = a.0;
         let b = &b[..];
-        let pat = [b, b].concat();
+        if 3 * b.len() > a.len() {
+            a = a.repeat(6 * b.len() / (a.len() + 1));
+        }
+        let a = &a;
+        let pat = b.repeat(3);
         let truth = a.find(&pat);
         TestResult::from_bool(find(a, &pat) == truth)
     }
