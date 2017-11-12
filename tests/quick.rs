@@ -1,6 +1,4 @@
 
-#![allow(dead_code)]
-
 extern crate galil_seiferas;
 
 #[macro_use] extern crate quickcheck;
@@ -8,9 +6,9 @@ extern crate odds;
 #[macro_use] extern crate macro_attr;
 #[macro_use] extern crate newtype_derive;
 
+use std::ops::Deref;
 
 use galil_seiferas::gs_find;
-use std::ops::Deref;
 
 use odds::string::StrExt;
 
@@ -177,26 +175,6 @@ impl Arbitrary for FibWord {
     }
 }
 
-#[derive(Clone, Debug)]
-struct ShortText(String);
-// Half the length of Text on average
-impl Arbitrary for ShortText {
-    fn arbitrary<G: qc::Gen>(g: &mut G) -> Self {
-        let len = u16::arbitrary(g) / 2;
-        let mut s = String::with_capacity(len as usize);
-        let alpha_len = ALPHABET.chars().count();
-        for _ in 0..len {
-            let i = usize::arbitrary(g);
-            let i = i % alpha_len;
-            s.push(ALPHABET.chars().nth(i).unwrap());
-        }
-        ShortText(s)
-    }
-    fn shrink(&self) -> Box<Iterator<Item=Self>> {
-        Box::new(self.0.shrink().map(ShortText))
-    }
-}
-
 macro_attr! {
     #[derive(Clone, Debug, NewtypeDeref!, NewtypeDerefMut!)]
     struct LSys1(String);
@@ -246,50 +224,28 @@ pub fn find(hay: &str, n: &str) -> Option<usize> {
     gs_find(hay.as_bytes(), n.as_bytes())
 }
 
-pub fn contains_rev(hay: &str, n: &str) -> bool {
-    let _ = (hay, n);
-    unimplemented!()
-}
-
-pub fn rfind(hay: &str, n: &str) -> Option<usize> {
-    let _ = (hay, n);
-    unimplemented!()
-}
-
-#[test]
-fn test_contains() {
-    fn prop(a: Text, b: Short<Text>) -> TestResult {
+quickcheck! {
+    fn test_contains(a: Text, b: Short<Text>) -> bool {
         let a = &a.0;
         let b = &b[..];
         let truth = a.contains(b);
-        TestResult::from_bool(contains(&a, &b) == truth)
+        contains(&a, &b) == truth
     }
-    quickcheck(prop as fn(_, _) -> _);
-}
 
-#[test]
-fn test_find_regular_str() {
-    fn prop(a: String, b: String) -> TestResult {
+    fn test_find_regular_str(a: String, b: Short<String>) -> bool {
         let a = &a[..];
         let b = &b[..];
         let truth = a.find(b);
-        TestResult::from_bool(find(&a, &b) == truth)
+        find(&a, &b) == truth
     }
-    quickcheck(prop as fn(_, _) -> _);
-}
 
-#[test]
-fn test_find_short() {
-    fn prop(a: Text, b: Short<Text>) -> TestResult {
+    fn test_find_short(a: Text, b: Short<Text>) -> bool {
         let a = &a.0;
         let b = &b[..];
         let truth = a.find(b);
-        TestResult::from_bool(find(&a, &b) == truth)
+        find(&a, &b) == truth
     }
-    quickcheck(prop as fn(_, _) -> _);
-}
 
-quickcheck! {
     fn test_find_longer_simple(a: SimpleText, b: SimpleText) -> () {
         // find all
         let mut a = &a[..];
@@ -337,11 +293,8 @@ quickcheck! {
         let truth = a.find(b);
         assert_eq!(find(&a, &b), truth);
     }
-}
 
-#[test]
-fn test_contains_plus() {
-    fn prop(a: Text, b: Short<Text>) -> TestResult {
+    fn test_contains_plus(a: Text, b: Short<Text>) -> TestResult {
         let a = &a.0;
         let b = &b[..];
         //let b = &b.0;
@@ -350,10 +303,7 @@ fn test_contains_plus() {
         TestResult::from_bool(contains(&a, &b) == truth &&
             (!truth || b.substrings().all(|sub| contains(&a, sub))))
     }
-    quickcheck(prop as fn(_, _) -> _);
-}
 
-quickcheck! {
     fn test_find_substrings_simple(a: SimpleText, b: SimpleText) -> TestResult {
         let a = &a.0;
         let b = &b[..];
@@ -364,31 +314,15 @@ quickcheck! {
         }
         TestResult::passed()
     }
-}
 
-#[test]
-fn test_contains_substrings() {
-    fn prop(s: (char, char, char, char)) -> bool {
-        let mut ss = String::new();
-        ss.push(s.0);
-        ss.push(s.1);
-        ss.push(s.2);
-        ss.push(s.3);
-        let a = &ss;
+    fn test_contains_substrings(s: Short<String>) -> () {
+        let a = &s[..];
         for sub in a.substrings() {
             assert!(a.contains(sub));
-            if !contains(a, sub) {
-                return false;
-            }
         }
-        true
     }
-    quickcheck(prop as fn(_) -> _);
-}
 
-#[test]
-fn test_find_period() {
-    fn prop(a: SimpleText, b: Short<SimpleText>) -> TestResult {
+    fn test_find_period(a: SimpleText, b: Short<SimpleText>) -> bool {
         let mut a = a.0;
         let b = &b[..];
         if 3 * b.len() > a.len() {
@@ -397,7 +331,6 @@ fn test_find_period() {
         let a = &a;
         let pat = b.repeat(3);
         let truth = a.find(&pat);
-        TestResult::from_bool(find(a, &pat) == truth)
+        find(a, &pat) == truth
     }
-    quickcheck(prop as fn(_, _) -> _);
 }
