@@ -128,10 +128,10 @@ fn test_fib_word() {
     assert_eq!(&*FibWord::new(4), "abaababa");
 }
 
+// Write a fuzz dictionary -- need to use --ignored to run these
 quickcheck! {
     #[ignore]
     fn generate_dict_fibwords(word: FibWord) -> () {
-        // Write a fuzz dictionary
         use std::io::Write;
         use std::fs::OpenOptions;
         let mut f = OpenOptions::new()
@@ -140,6 +140,28 @@ quickcheck! {
             .create(true)
             .open("dict-fibwords").unwrap();
         writeln!(f, "{:?}", word.as_str()).unwrap();
+    }
+
+    #[ignore]
+    fn generate_dict_lsys(words: Vec<usize>, repeats: Vec<usize>) -> () {
+        use std::io::Write;
+        use std::fs::OpenOptions;
+        let mut f = OpenOptions::new()
+            .write(true)
+            .append(true)
+            .create(true)
+            .open("dict-lsys").unwrap();
+
+        let mut s = String::new();
+        for (w, repeat) in words.into_iter().zip(repeats) {
+            for _ in 0..((repeat % 5) + 1) {
+                s.push_str(&LSys1::new(w % 6));
+            }
+        }
+
+        if !s.is_empty() {
+            writeln!(f, "\"{}\"", s).unwrap();
+        }
     }
 }
 
@@ -175,6 +197,47 @@ impl Arbitrary for ShortText {
     }
     fn shrink(&self) -> Box<Iterator<Item=Self>> {
         Box::new(self.0.shrink().map(ShortText))
+    }
+}
+
+macro_attr! {
+    #[derive(Clone, Debug, NewtypeDeref!, NewtypeDerefMut!)]
+    struct LSys1(String);
+}
+
+// L-System where we rewrite a string in generations
+/// Starting state
+const LSTART: &str = "0";
+
+/// Rewrite rules
+const LRULES: &[(u8, &str)] = &[
+    (b'0', "100"),
+    (b'1', "11"),
+];
+
+impl LSys1 {
+    fn new(n: usize) -> Self {
+        let mut f = LSys1(String::from(LSTART));
+        let mut g = LSys1(String::new());
+        for _ in 0..n {
+            f.next_into(&mut g);
+            std::mem::swap(&mut f, &mut g);
+        }
+        f
+    }
+
+    fn next_into(&self, s: &mut String) {
+        s.clear();
+        'bytes: for byte in self.bytes() {
+            for &(rule, replace) in LRULES {
+                if byte == rule {
+                    s.push_str(replace);
+                    continue 'bytes;
+                }
+            }
+            // else it is a constant
+            s.push(byte as char);
+        }
     }
 }
 
