@@ -131,7 +131,7 @@ fn test_fib_word() {
 // Write a fuzz dictionary -- need to use --ignored to run these
 quickcheck! {
     #[ignore]
-    fn generate_dict_fibwords(word: FibWord) -> () {
+    fn generate_dict_fibwords(n: usize) -> () {
         use std::io::Write;
         use std::fs::OpenOptions;
         let mut f = OpenOptions::new()
@@ -139,6 +139,7 @@ quickcheck! {
             .append(true)
             .create(true)
             .open("dict-fibwords").unwrap();
+        let word = FibWord::new(n % 10);
         writeln!(f, "{:?}", word.as_str()).unwrap();
     }
 
