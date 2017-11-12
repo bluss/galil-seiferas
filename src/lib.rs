@@ -724,6 +724,41 @@ mod benches {
         b.bytes = haystack.len() as u64;
     }
 
+    // test some regular non-periodic words
+    #[bench]
+    fn bench_gs_find_itself1(b: &mut Bencher) {
+        let haystack = "itself";
+        let pattern = "itself";
+
+        b.iter(|| {
+            gs_find(haystack.as_bytes(), pattern.as_bytes())
+        });
+        b.bytes = haystack.len() as u64;
+    }
+
+    #[bench]
+    fn bench_gs_find_itself2(b: &mut Bencher) {
+        let haystack = "the word itself";
+        let pattern = "itself";
+
+        b.iter(|| {
+            gs_find(haystack.as_bytes(), pattern.as_bytes())
+        });
+        b.bytes = haystack.len() as u64;
+    }
+
+    #[bench]
+    fn bench_gs_find_itself3(b: &mut Bencher) {
+        let haystack = "this is actually a longer text where them self tself\
+            could be tricked by and so on.".repeat(10) + "itself.";
+        let pattern = "itself";
+
+        b.iter(|| {
+            gs_find(haystack.as_bytes(), pattern.as_bytes())
+        });
+        b.bytes = haystack.len() as u64;
+    }
+
     #[bench]
     fn bench_gs_strings_bad(b: &mut Bencher) {
         let n = 50;
