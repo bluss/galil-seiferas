@@ -4,9 +4,7 @@ String search in constant space, linear time, for nonorderable alphabets.
 In Rust terms this means we can define the function:
 
 ```rust
-fn gs_find<T>(text: &[T], pattern: &[T]) -> Option<usize>
-where T: Eq
-{
+fn gs_find<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
     // ...
 }
 ```
@@ -32,6 +30,3 @@ Journal of Computer and System Sciences (1983)
 - [CR] M. Crochemore and W. Rytter,
 *Squares, Cubes, and Time-Space Efficient String Searching*,
 Algorithmica (1995)
-  - Crochemore-Rytter's description of the Galil-Seiferas algoritm has been
-  very helpful and it explains how it works in concepts that we could
-  implement.
