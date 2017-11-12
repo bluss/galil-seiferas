@@ -132,27 +132,12 @@ fn test_fib_word() {
 quickcheck! {
     #[ignore]
     fn generate_dict_fibwords(n: usize) -> () {
-        use std::io::Write;
-        use std::fs::OpenOptions;
-        let mut f = OpenOptions::new()
-            .write(true)
-            .append(true)
-            .create(true)
-            .open("dict-fibwords").unwrap();
         let word = FibWord::new(n % 10);
-        writeln!(f, "{:?}", word.as_str()).unwrap();
+        writeln_to_file(format!("{:?}", word.as_str()), "dict-fibwords");
     }
 
     #[ignore]
     fn generate_dict_lsys(words: Vec<usize>, repeats: Vec<usize>) -> () {
-        use std::io::Write;
-        use std::fs::OpenOptions;
-        let mut f = OpenOptions::new()
-            .write(true)
-            .append(true)
-            .create(true)
-            .open("dict-lsys").unwrap();
-
         let mut s = String::new();
         for (w, repeat) in words.into_iter().zip(repeats) {
             for _ in 0..((repeat % 5) + 1) {
@@ -161,9 +146,20 @@ quickcheck! {
         }
 
         if !s.is_empty() {
-            writeln!(f, "\"{}\"", s).unwrap();
+            writeln_to_file(format!("\"{}\"", s), "dict-lsys");
         }
     }
+}
+
+fn writeln_to_file(s: String, name: &str) {
+    use std::io::Write;
+    use std::fs::OpenOptions;
+    let mut f = OpenOptions::new()
+        .write(true)
+        .append(true)
+        .create(true)
+        .open(name).unwrap();
+    writeln!(f, "{}", s).unwrap();
 }
 
 impl Arbitrary for FibWord {
