@@ -10,6 +10,7 @@ cargo-fuzz = true
 
 [dependencies.galil-seiferas]
 path = ".."
+features = ["test-functions"]
 [dependencies.libfuzzer-sys]
 git = "https://github.com/rust-fuzz/libfuzzer-sys.git"
 

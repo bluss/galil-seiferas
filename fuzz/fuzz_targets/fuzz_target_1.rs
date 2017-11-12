@@ -9,6 +9,6 @@ fuzz_target!(|data: &[u8]| {
         let (_, data) = data.split_at(2);
         let needle_split = ((a << 8) | b).min(data.len());
         let (needle, hay) = data.split_at(needle_split);
-        assert_eq!(galil_seiferas::util::brute_force_fast(hay, needle), galil_seiferas::gs_find(hay, needle));
+        assert_eq!(galil_seiferas::brute_force_search(hay, needle), galil_seiferas::gs_find(hay, needle));
     }
 });

@@ -17,27 +17,9 @@ impl<'a> fmt::Display for Bytestring<'a, u8> {
     }
 }
 
-// using slow loop
-#[cfg(test)]
-pub(crate) fn brute_force_search<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
-    let n = text.len();
-    let m = pattern.len();
-    if n < m {
-        return None;
-    }
-    'outer: for i in 0..n - m + 1 {
-        for j in 0..m {
-            if text[i + j] != pattern[j] {
-                continue 'outer;
-            }
-        }
-        return Some(i);
-    }
-    None
-}
-
-// using memcmp
-pub fn brute_force_fast<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
+#[cfg(any(test, feature = "test-functions"))]
+// using memcmp, so relatively fast but naive search
+pub fn brute_force_search<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
     let n = text.len();
     let m = pattern.len();
     if n < m {
@@ -57,8 +39,6 @@ pub fn brute_force_fast<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
 fn test_brute_force_search() {
     assert_eq!(brute_force_search(b"abcabcd", b"abc"), Some(0));
     assert_eq!(brute_force_search(b"abcabcd", b"abcd"), Some(3));
-    assert_eq!(brute_force_fast(b"abcabcd", b"abc"), Some(0));
-    assert_eq!(brute_force_fast(b"abcabcd", b"abcd"), Some(3));
-    assert_eq!(brute_force_fast(b"ab", b"abc"), None);
+    assert_eq!(brute_force_search(b"ab", b"abc"), None);
 }
 

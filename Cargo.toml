@@ -27,8 +27,11 @@ newtype_derive = "0.1"
 matches = "0.1"
 
 [features]
+
+# All of these for testing only
 benchmarks = []
 trace = []
+test-functions = []
 
 [profile.dev]
 opt-level = 1
