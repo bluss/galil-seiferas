@@ -89,7 +89,7 @@ fn test_has_prefix() {
 }
 
 /// The value *k* is a “large enough integer” whose usage becomes clear below;
-/// [CS] shows k = 3 is the best, lowest value where the algorithm works
+/// [CR] shows k = 3 is the best, lowest value where the algorithm works
 /// unmodified.
 const GS_K: usize = 3;
 
