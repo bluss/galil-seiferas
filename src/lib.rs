@@ -400,6 +400,22 @@ fn test_decompose_period_2() {
     assert_matches!(hrp, Some(Hrp { period: 2, .. }));
 }
 
+#[test]
+fn test_decompose_period_mega() {
+    let alphabet = "abcdefghi";
+    let mut s = String::from("");
+    for ch in alphabet.chars() {
+        s.push(ch);
+        s = s.repeat(4);
+    }
+    println!("{}", &s[..70]);
+
+    const HRP1: usize = 87381;
+    let (u, v, hrp) = decompose(s.as_bytes());
+    assert_eq!(u.len() + v.len(), s.len());
+    assert_matches!(hrp, Some(Hrp { period: HRP1, .. }));
+}
+
 
 /// Assert that the input = u v is a perfect factorization
 #[cfg(debug_assertions)]
