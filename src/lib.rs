@@ -192,14 +192,25 @@ fn hrp<T: Eq>(mut period: usize, pattern: &[T], hrp2_period: usize)
 }
 
 #[test]
-fn test_hrp() {
+fn test_hrp_1() {
     let s = b"aabaabaabaabaabaabbbb";
 
     println!("s: {}", Bytestring(s));
     assert_matches!(hrp(1, s, 0), (Some(Hrp { period: 3, len: 18 }), None));
     assert_matches!(hrp(2, s, 0), (Some(Hrp { period: 3, len: 18 }), None));
+    // the next is not a proper HRP since it is not basic (we're calling it with
+    // a too low starting period)
     assert_matches!(hrp(4, s, 0), (Some(Hrp { period: 6, len: 18 }), None));
-    assert_matches!(hrp(6, s, 0), (Some(Hrp { period: 6, len: 18 }), None));
+}
+
+#[test]
+fn test_hrp_2() {
+    //        1..
+    //        2222...|...|..
+    let s = b"aaabaaabaaabaa";
+    assert_matches!(hrp(1, s, 0),
+                    (Some(Hrp { period: 1, len: 3 }),
+                     Some(Hrp { period: 4, len: 14 })));
 }
 
 #[test]
