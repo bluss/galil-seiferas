@@ -161,18 +161,23 @@ fn hrp<T: Eq>(mut period: usize, pattern: &[T], hrp2_period: Option<usize>)
                 }
             }
 
-            // period, j adjustments from [GS] An Integrated Implementation.
+            // periodicity lemma [GS]/[CR]
+            //
+            //  If a string x with p + q <= |x| has periods of length p and
+            //  q, then it has a period of length gcd(p, q)
+            //
+            // period, j adjustments from [GS] Preprocessing A Pattern.
             //
             // pattern[..period + j] has period of length `period`
             // pattern[..period + j + 1] does not.
-            // thus second period >= j.
+            // thus second period >= j
+            // by the periodicity lemma.
             //
             // For example:
             //
             //   /.\/.\/.\/.  period = 3
             //   abcabcabcabdefghij  // the pattern
-            //   \........./  prefix with period + j = 11
-            //   next period must be >= to accomodate the mismatching char (here "d")
+            //   \........./  prefix with period + j = 3 + 8 = 11
             //
             period = j;
             j = 0;
