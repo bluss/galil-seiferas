@@ -66,11 +66,7 @@ pub use util::brute_force_search;
 // This function is intended for our use case here, where the (prefix of the)
 // pattern is very short or empty
 fn text_has_prefix<T: Eq>(text: &[T], pattern: &[T]) -> bool {
-    debug_assert!(pattern.len() <= text.len());
-    for i in 0..pattern.len() {
-        if get!(text, i) != get!(pattern, i) { return false; }
-    }
-    true
+    longest_common_prefix_from(0, text, pattern) == pattern.len()
 }
 
 #[test]
@@ -86,6 +82,34 @@ fn test_has_prefix() {
     for i in 0..data.len() + 1 {
         assert!(text_has_prefix(data, &data[..i]));
     }
+}
+
+/// Find the greatest shared prefix, starting at from, of text and pattern.
+/// Return the length of the prefix (including `from`).
+///
+/// Example:
+///          __________
+/// text:    aabaabaaabbb
+/// pattern: aabaabaaaba
+///              \.....x
+///           from = 4 \ return value: from + .. = 4 + 6 = 10
+fn longest_common_prefix_from<T: Eq>(from: usize, text: &[T], pattern: &[T]) -> usize {
+    debug_assert!(pattern.len() <= text.len());
+    debug_assert!(from <= pattern.len());
+    let mut i = from;
+    while i < pattern.len() {
+        if get!(text, i) != get!(pattern, i) { return i; }
+        i += 1;
+    }
+    i
+}
+
+#[test]
+fn test_longest_common_prefix_from() {
+    let a = b"abcabcaabc";
+    let b = b"abcabcabc";
+    assert_eq!(longest_common_prefix_from(0, a, b), 7);
+    assert_eq!(longest_common_prefix_from(0, a, &b[1..]), 0);
 }
 
 /// The value *k* is a “large enough integer” whose usage becomes clear below;
@@ -136,15 +160,13 @@ fn hrp<T: Eq>(mut period: usize, pattern: &[T], hrp2_period: Option<usize>)
 {
     let k = GS_K;
     let m = pattern.len();
-    let mut j = 0;
+    let mut j = 0;        // pattern position
     let mut hrp1 = None;
     let hrp2_period_limit = hrp2_period.unwrap_or(0);
 
     while period + j < m {
         // find the greatest length (period + j) with the same period
-        while period + j < m && get!(pattern, j) == get!(pattern, period + j) {
-            j += 1;
-        }
+        j = longest_common_prefix_from(j, pattern, get!(pattern, period..));
 
         let prefix_length = period + j;
 
@@ -584,12 +606,10 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
         (false, 0, 0)
     };
 
-    let mut pos = *start_pos;
-    let mut j = 0;
+    let mut pos = *start_pos; // text position
+    let mut j = 0;            // pattern position
     while pos <= n - m {
-        while j < m && get!(pattern, j) == get!(text, pos + j) {
-            j += 1;
-        }
+        j = longest_common_prefix_from(j, get!(text, pos..), pattern);
         let has_match = if j == m { Some(pos) } else { None };
         if has_scope && j >= scope_l && j <= scope_r {
             pos += scope_l / 2;
