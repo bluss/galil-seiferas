@@ -32,9 +32,14 @@ Recent Changes
 Benchmarks
 ----------
 
-It's not fast — two way is a whole lot better. But we have one baseline, and that's
-the "naive" brute force search which is quadratic in the size of the input, in
-the worst case.
+Here are some comparisons as a plain byte string searcher. This isn't the use
+case for this algorithm, its use case is for nonorderable alphabets. But we
+use this to have wide comparisons. Keep in mind that the byte string search
+is characterized by its very cheap comparison operation.
+
+It's not fast — two way is a whole lot better, if you can use it. But we have
+one baseline, and that's the "naive" brute force search which is quadratic in
+the size of the input, in the worst case.
 
 The repo https://github.com/bluss/scratchspace collects some string matching benchmarks,
 and a lot of them are “pathologies” or cases that were known to be bad for some
