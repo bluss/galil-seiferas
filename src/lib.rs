@@ -580,7 +580,7 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
     -> Option<usize>
 {
     debug_assert!(pattern.len() <= text.len());
-    debug_assert_eq!(hrp(1, pattern, None).0, *hrp1);
+    debug_assert_eq!(hrp(1, pattern, None), (*hrp1, None));
 
     let n = text.len();
     let m = pattern.len();
