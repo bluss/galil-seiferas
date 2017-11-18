@@ -53,11 +53,11 @@ defmac!(get slice, index => unsafe { ::unchecked_index::get_unchecked(slice, ind
 
 #[macro_use]
 #[doc(hidden)]
-mod util;
+mod test_util;
 #[cfg(test)]
-use util::Bytestring;
+use test_util::Bytestring;
 #[cfg(feature = "test-functions")]
-pub use util::brute_force_search;
+pub use test_util::brute_force_search;
 
 
 /// Test if `text` starts with `pattern`.
@@ -642,7 +642,7 @@ mod benches {
     use self::test::Bencher;
     use super::gs_find;
     use super::decompose;
-    use super::util::brute_force_search;
+    use super::test_util::brute_force_search;
 
     const DECOMPOSE_LEN: usize = 50;
 
