@@ -12,12 +12,12 @@ readme = "README-crates.io.md"
 
 description = "General string search in constant space, linear time, for nonorderable alphabets."
 
-keywords = ["string", "substring", "search", "pattern"]
-categories = ["algorithms"]
+keywords = ["string", "substring", "search", "pattern", "no_std"]
+categories = ["algorithms", "no-std"]
 
 [dependencies]
 defmac = "0.1"
-unchecked-index = "0.2"
+unchecked-index = { version = "0.2.2" }
 
 [dev-dependencies]
 quickcheck = { version = "0.4", default-features = false }

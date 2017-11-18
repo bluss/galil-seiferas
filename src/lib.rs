@@ -37,8 +37,13 @@
 //! - [CR] M. Crochemore and W. Rytter,
 //! *Squares, Cubes, and Time-Space Efficient String Searching*,
 //! Algorithmica (1995)
+//!
+//! # Crate Features
+//!
+//! The crate is always `no_std`
 
 
+#![cfg_attr(not(test), no_std)]
 #![cfg_attr(feature = "benchmarks", feature(test))]
 
 #[cfg(test)]
