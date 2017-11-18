@@ -30,5 +30,9 @@ name = "known_substring"
 path = "fuzz_targets/known_substring.rs"
 
 [[bin]]
+name = "known_substring_i16"
+path = "fuzz_targets/known_substring_i16.rs"
+
+[[bin]]
 name = "decomposition"
 path = "fuzz_targets/decomposition.rs"
