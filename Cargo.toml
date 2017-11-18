@@ -1,6 +1,6 @@
 [package]
 
-version = "0.1.1"
+version = "0.1.2"
 
 name = "galil-seiferas"
 license = "MIT/Apache-2.0"

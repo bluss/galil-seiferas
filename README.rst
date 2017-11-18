@@ -19,6 +19,11 @@ __ https://docs.rs/galil-seiferas/
 Recent Changes
 --------------
 
+- 0.1.2
+
+  - Cleanup code, better code comments, refactor, more tests and no memcmp use
+  - The library is now always ``no_std``.
+
 - 0.1.1
 
   - Fix bug in decompose (`#1`_)
