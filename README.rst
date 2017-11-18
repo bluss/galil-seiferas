@@ -2,6 +2,7 @@ galil-seiferas
 ==============
 
 General string search in constant space, linear time, for nonorderable alphabets.
+Also known as exact string matching.
 
 Please read the `API documentation on docs.rs`__
 

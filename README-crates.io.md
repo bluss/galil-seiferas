@@ -1,5 +1,6 @@
 
-String search in constant space, linear time, for nonorderable alphabets.
+General string search in constant space, linear time, for nonorderable alphabets.
+Also known as exact string matching.
 
 In Rust terms this means we can define the function:
 
