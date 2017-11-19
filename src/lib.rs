@@ -501,8 +501,10 @@ pub fn gs_find<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
     let (u, v, hrp1) = decompose(pattern);
 
     // find each occurence of v in the text; then check if u precedes it
-    let mut pos = 0;
-    while let Some(i) = search_simple(get!(text, u.len()..), v, &mut pos, &hrp1) {
+    let (mut pos, mut j) = (0, 0);
+    while let Some(i) = search_simple(get!(text, u.len()..), v,
+                                      &mut pos, &mut j, &hrp1)
+    {
         if text_has_prefix(get!(text, i..), u) {
             return Some(i);
         }
@@ -581,7 +583,9 @@ fn test_find_fuzz_2() {
 /// `start_pos` is the position to start the search, and it is updated after
 /// the function returns with a match.
 fn search_simple<T: Eq>(text: &[T], pattern: &[T],
-                        start_pos: &mut usize, hrp1: &Option<Hrp>)
+                        start_pos: &mut usize,
+                        start_j: &mut usize,
+                        hrp1: &Option<Hrp>)
     -> Option<usize>
 {
     debug_assert!(pattern.len() <= text.len());
@@ -612,7 +616,7 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
     };
 
     let mut pos = *start_pos; // text position
-    let mut j = 0;            // pattern position
+    let mut j = *start_j;     // pattern position
     while pos <= n - m {
         j = longest_common_prefix_from(j, get!(text, pos..), pattern);
         let has_match = if j == m { Some(pos) } else { None };
@@ -625,6 +629,7 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
         }
         if let Some(match_pos) = has_match {
             *start_pos = pos;
+            *start_j = j;
             return Some(match_pos);
         }
     }
