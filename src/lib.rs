@@ -827,6 +827,54 @@ mod benches {
     }
 
     #[bench]
+    fn bench_gs_find_itself4(b: &mut Bencher) {
+        let haystack = "this is actually a longer text where them xxxx xxxxx\
+            could be tricked by and so on.".repeat(10) + "itself.";
+        let pattern = "itself";
+
+        b.iter(|| {
+            gs_find(haystack.as_bytes(), pattern.as_bytes())
+        });
+        b.bytes = haystack.len() as u64;
+    }
+
+    #[bench]
+    fn bench_brute_itself4(b: &mut Bencher) {
+        let haystack = "this is actually a longer text where them xxxx xxxxx\
+            could be tricked by and so on.".repeat(10) + "itself.";
+        let pattern = "itself";
+
+        b.iter(|| {
+            brute_force_search(haystack.as_bytes(), pattern.as_bytes())
+        });
+        b.bytes = haystack.len() as u64;
+    }
+
+    #[bench]
+    fn bench_gs_find_itself5(b: &mut Bencher) {
+        let haystack = "this is actually a longer text where them itsel itselg\
+            could be tricked by and so on.".repeat(10) + "itself.";
+        let pattern = "itself";
+
+        b.iter(|| {
+            gs_find(haystack.as_bytes(), pattern.as_bytes())
+        });
+        b.bytes = haystack.len() as u64;
+    }
+
+    #[bench]
+    fn bench_brute_itself5(b: &mut Bencher) {
+        let haystack = "this is actually a longer text where them itsel itselg\
+            could be tricked by and so on.".repeat(10) + "itself.";
+        let pattern = "itself";
+
+        b.iter(|| {
+            brute_force_search(haystack.as_bytes(), pattern.as_bytes())
+        });
+        b.bytes = haystack.len() as u64;
+    }
+
+    #[bench]
     fn bench_gs_strings_bad(b: &mut Bencher) {
         let n = 50;
         let haystack_s = ("bacbax".repeat(n - 1) + "bbbbb").repeat(n);
