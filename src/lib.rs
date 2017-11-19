@@ -487,6 +487,65 @@ fn assert_perfect_decomposition<T: Eq>(k: usize, u: &[T], v: &[T]) {
     // ok
 }
 
+/// Search `text` for the `pattern` with the requirement that the pattern
+/// is k-simple; which means it has at most one k-HRP.
+///
+/// `start_pos` is the position to start the search, and it is updated after
+/// the function returns with a match.
+fn search_simple<T: Eq>(text: &[T], pattern: &[T],
+                        start_pos: &mut usize,
+                        start_j: &mut usize,
+                        hrp1: &Option<Hrp>)
+    -> Option<usize>
+{
+    debug_assert!(pattern.len() <= text.len());
+    debug_assert_eq!(hrp(1, pattern, None), (*hrp1, None));
+
+    let n = text.len();
+    let m = pattern.len();
+
+    let (has_scope, scope_l, scope_r) = if let Some(hrp1) = *hrp1 {
+        // Scope of the k-HRP1 is [L, R]
+        // where
+        //  L = |v²| = 2 × period
+        //  R = z = length of prefix
+        //
+        // See Lemma 2 in [CR]:
+        //
+        // Any nonempty prefix u of x satisfies
+        //
+        // per(u) = Li / 2 if |u| is in [Li, Ri] for some i
+        // per(u) > |u| / k if not
+        //
+        let scope_l = hrp1.period * 2;
+        let scope_r = hrp1.len;
+        debug_assert!(scope_l <= scope_r);
+        (true, scope_l, scope_r)
+    } else {
+        (false, 0, 0)
+    };
+
+    let mut pos = *start_pos; // text position
+    let mut j = *start_j;     // pattern position
+    while pos <= n - m {
+        j = longest_common_prefix_from(j, get!(text, pos..), pattern);
+        let has_match = if j == m { Some(pos) } else { None };
+        if has_scope && j >= scope_l && j <= scope_r {
+            pos += scope_l / 2;
+            j -= scope_l / 2;
+        } else {
+            pos += j / GS_K + 1;
+            j = 0;
+        }
+        if let Some(match_pos) = has_match {
+            *start_pos = pos;
+            *start_j = j;
+            return Some(match_pos);
+        }
+    }
+    None
+}
+
 
 /// This is the Galil-Seiferas string matching algorithm.
 ///
@@ -575,65 +634,6 @@ fn test_find_fuzz_2() {
                aababaab\xffaabaabaab\x00\x00\xff\x28\xffaab\xffaabaabaab\x00\
                \x00\xff\x28\xff";
     assert_find_substring!(data, 21..21 + 68);
-}
-
-/// Search `text` for the `pattern` with the requirement that the pattern
-/// is k-simple; which means it has at most one k-HRP.
-///
-/// `start_pos` is the position to start the search, and it is updated after
-/// the function returns with a match.
-fn search_simple<T: Eq>(text: &[T], pattern: &[T],
-                        start_pos: &mut usize,
-                        start_j: &mut usize,
-                        hrp1: &Option<Hrp>)
-    -> Option<usize>
-{
-    debug_assert!(pattern.len() <= text.len());
-    debug_assert_eq!(hrp(1, pattern, None), (*hrp1, None));
-
-    let n = text.len();
-    let m = pattern.len();
-
-    let (has_scope, scope_l, scope_r) = if let Some(hrp1) = *hrp1 {
-        // Scope of the k-HRP1 is [L, R]
-        // where
-        //  L = |v²| = 2 × period
-        //  R = z = length of prefix
-        //
-        // See Lemma 2 in [CR]:
-        //
-        // Any nonempty prefix u of x satisfies
-        //
-        // per(u) = Li / 2 if |u| is in [Li, Ri] for some i
-        // per(u) > |u| / k if not
-        //
-        let scope_l = hrp1.period * 2;
-        let scope_r = hrp1.len;
-        debug_assert!(scope_l <= scope_r);
-        (true, scope_l, scope_r)
-    } else {
-        (false, 0, 0)
-    };
-
-    let mut pos = *start_pos; // text position
-    let mut j = *start_j;     // pattern position
-    while pos <= n - m {
-        j = longest_common_prefix_from(j, get!(text, pos..), pattern);
-        let has_match = if j == m { Some(pos) } else { None };
-        if has_scope && j >= scope_l && j <= scope_r {
-            pos += scope_l / 2;
-            j -= scope_l / 2;
-        } else {
-            pos += j / GS_K + 1;
-            j = 0;
-        }
-        if let Some(match_pos) = has_match {
-            *start_pos = pos;
-            *start_j = j;
-            return Some(match_pos);
-        }
-    }
-    None
 }
 
 //
