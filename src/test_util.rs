@@ -18,17 +18,29 @@ impl<'a> fmt::Display for Bytestring<'a, u8> {
 }
 
 #[cfg(any(test, feature = "test-functions"))]
-// using memcmp, so relatively fast but naive search
 pub fn brute_force_search<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
     let n = text.len();
     let m = pattern.len();
     if n < m {
         return None;
     }
-    for i in 0..n - m + 1 {
-        if &text[i .. i + m] == pattern {
+    'outer: for i in 0..n - m + 1 {
+
+        /* to use memcmp:
+         * it's a tradeoff; memcmp is faster with more pathological-y inputs!
+         * for relistic inputs where we quickly find a mismatch at most
+         * postions, it's faster using just single element get.
+        if get!(text, i .. i + m) == pattern {
             return Some(i);
         }
+        */
+
+        for j in 0..m {
+            if get!(text, i + j) != get!(pattern, j) {
+                continue 'outer;
+            }
+        }
+        return Some(i);
     }
     None
 }
