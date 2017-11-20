@@ -19,6 +19,12 @@ __ https://docs.rs/galil-seiferas/
 Recent Changes
 --------------
 
+- 0.1.3
+
+  - Update the algorithm to keep the position in the pattern during search
+    passes. (Makes fewer comparisons with periodict patterns.)
+  - Expression tweaks that improve benchmarks without affecting the algorithm
+
 - 0.1.2
 
   - Cleanup code, better code comments, refactor, more tests and no memcmp use
