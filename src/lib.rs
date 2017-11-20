@@ -504,33 +504,26 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
     let n = text.len();
     let m = pattern.len();
 
-    let (has_scope, scope_l, scope_r) = if let Some(hrp1) = *hrp1 {
-        // Scope of the k-HRP1 is [L, R]
-        // where
-        //  L = |v²| = 2 × period
-        //  R = z = length of prefix
-        //
-        // See Lemma 2 in [CR]:
-        //
-        // Any nonempty prefix u of x satisfies
-        //
-        // per(u) = Li / 2 if |u| is in [Li, Ri] for some i
-        // per(u) > |u| / k if not
-        //
-        let scope_l = hrp1.period * 2;
-        let scope_r = hrp1.len;
-        debug_assert!(scope_l <= scope_r);
-        (true, scope_l, scope_r)
-    } else {
-        (false, 0, 0)
-    };
-
+    // Scope of the k-HRP1 is [L, R]
+    // where
+    //  L = |v²| = 2 × period
+    //  R = |z| = length of periodic prefix
+    //
+    // See Lemma 2 in [CR]:
+    //
+    // Any nonempty prefix u of x satisfies
+    //
+    // per(u) = L / 2 if |u| is in [L, R]
+    // per(u) > |u| / k if not
+    //
+    let (scope_l, scope_r) = hrp1.map(|h| (h.period * 2, h.len))
+                                 .unwrap_or((!0, !0));
     let mut pos = *start_pos; // text position
     let mut j = *start_j;     // pattern position
     while pos <= n - m {
         j = longest_common_prefix_from(j, get!(text, pos..), pattern);
         let has_match = if j == m { Some(pos) } else { None };
-        if has_scope && j >= scope_l && j <= scope_r {
+        if j >= scope_l && j <= scope_r {
             pos += scope_l / 2;
             j -= scope_l / 2;
         } else {
