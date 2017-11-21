@@ -19,6 +19,10 @@ __ https://docs.rs/galil-seiferas/
 Recent Changes
 --------------
 
+- 0.1.4
+
+  - Expression tweaks again, for the new nightly
+
 - 0.1.3
 
   - Update the algorithm to keep the position in the pattern during search
