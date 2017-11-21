@@ -63,29 +63,34 @@ tests whose results are off.
 The G-S algorithm is ``gs_find``; the KMP algorithm (in a simple implementation) is
 ``kmp_find``; the substring searcher in Rust is just ``find``::
 
-  test naive::bmh_find                        ... bench:         826 ns/iter (+/- 7)    302 MB/s
-  test naive::brute_force                     ... bench:       1,908 ns/iter (+/- 73)   131 MB/s
-  test naive::find                            ... bench:         516 ns/iter (+/- 100)  484 MB/s
-  test naive::gs_find                         ... bench:         624 ns/iter (+/- 20)   400 MB/s // NOTE
-  test naive::kmp_find                        ... bench:         714 ns/iter (+/- 24)   350 MB/s
-  test naive::memmem                          ... bench:         187 ns/iter (+/- 9)   1336 MB/s
-  test naive_rev::bmh_find                    ... bench:          36 ns/iter (+/- 1)   6944 MB/s
-  test naive_rev::brute_force                 ... bench:         279 ns/iter (+/- 3)    896 MB/s
-  test naive_rev::find                        ... bench:         444 ns/iter (+/- 43)   563 MB/s
-  test naive_rev::gs_find                     ... bench:         364 ns/iter (+/- 6)    686 MB/s // NOTE
-  test naive_rev::kmp_find                    ... bench:         514 ns/iter (+/- 17)   486 MB/s
-  test naive_rev::memmem                      ... bench:          11 ns/iter (+/- 0)  22727 MB/s
-  test short_word1_long::bmh_find             ... bench:       1,490 ns/iter (+/- 77)  1712 MB/s
-  test short_word1_long::brute_force          ... bench:       4,064 ns/iter (+/- 115)  627 MB/s
-  test short_word1_long::find                 ... bench:         652 ns/iter (+/- 47)  3912 MB/s
-  test short_word1_long::gs_find              ... bench:       4,945 ns/iter (+/- 167)  515 MB/s // NOTE
-  test short_word1_long::kmp_find             ... bench:       6,515 ns/iter (+/- 272)  391 MB/s
-  test short_word1_long::memmem               ... bench:       1,594 ns/iter (+/- 25)  1600 MB/s
-  test short_word2_long::bmh_find             ... bench:       2,620 ns/iter (+/- 159)  973 MB/s
-  test short_word2_long::brute_force          ... bench:       3,724 ns/iter (+/- 407)  685 MB/s
-  test short_word2_long::find                 ... bench:       1,077 ns/iter (+/- 54)  2368 MB/s
-  test short_word2_long::gs_find              ... bench:       4,723 ns/iter (+/- 141)  540 MB/s // NOTE
-  test short_word2_long::memmem               ... bench:       1,708 ns/iter (+/- 52)  1493 MB/s
+  test naive::bmh_find                     ... bench:         833 ns/iter (+/- 223) = 300 MB/s
+  test naive::brute_force                  ... bench:       1,907 ns/iter (+/- 472) = 131 MB/s
+  test naive::find                         ... bench:         530 ns/iter (+/- 15) = 471 MB/s
+  test naive::gs_find                      ... bench:         615 ns/iter (+/- 6) = 406 MB/s  // NOTE
+  test naive::kmp_find                     ... bench:         714 ns/iter (+/- 24)   350 MB/s
+  test naive::memmem                       ... bench:         185 ns/iter (+/- 4) = 1351 MB/s
+  test naive_longpat::bmh_find             ... bench:     325,798 ns/iter (+/- 5,490) = 306 MB/s
+  test naive_longpat::brute_force          ... bench:   2,161,608 ns/iter (+/- 120,669) = 46 MB/s
+  test naive_longpat::find                 ... bench:     191,133 ns/iter (+/- 7,939) = 523 MB/s
+  test naive_longpat::gs_find              ... bench:     260,667 ns/iter (+/- 9,659) = 383 MB/s // NOTE
+  test naive_longpat::memmem               ... bench:      55,119 ns/iter (+/- 3,846) = 1814 MB/s
+  test naive_rev::bmh_find                 ... bench:          36 ns/iter (+/- 1) = 6944 MB/s
+  test naive_rev::brute_force              ... bench:         281 ns/iter (+/- 204) = 889 MB/s
+  test naive_rev::find                     ... bench:         394 ns/iter (+/- 47) = 634 MB/s
+  test naive_rev::gs_find                  ... bench:         292 ns/iter (+/- 20) = 856 MB/s  // NOTE
+  test naive_rev::kmp_find                 ... bench:         514 ns/iter (+/- 17)   486 MB/s
+  test naive_rev::memmem                   ... bench:          11 ns/iter (+/- 0) = 22727 MB/s
+  test short_word1_long::bmh_find          ... bench:       1,486 ns/iter (+/- 53) = 1716 MB/s
+  test short_word1_long::brute_force       ... bench:       4,042 ns/iter (+/- 226) = 631 MB/s
+  test short_word1_long::find              ... bench:         729 ns/iter (+/- 28) = 3499 MB/s
+  test short_word1_long::gs_find           ... bench:       4,791 ns/iter (+/- 184) = 532 MB/s  // NOTE
+  test short_word1_long::kmp_find          ... bench:       6,515 ns/iter (+/- 272)  391 MB/s
+  test short_word1_long::memmem            ... bench:       1,670 ns/iter (+/- 374) = 1527 MB/s
+  test short_word2_long::bmh_find          ... bench:       2,623 ns/iter (+/- 131) = 972 MB/s
+  test short_word2_long::brute_force       ... bench:       3,865 ns/iter (+/- 212) = 660 MB/s
+  test short_word2_long::find              ... bench:       1,169 ns/iter (+/- 40) = 2182 MB/s
+  test short_word2_long::gs_find           ... bench:       4,245 ns/iter (+/- 196) = 600 MB/s  // NOTE
+  test short_word2_long::memmem            ... bench:       1,729 ns/iter (+/- 150) = 1475 MB/s
 
 License
 =======
