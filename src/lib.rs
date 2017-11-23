@@ -70,22 +70,24 @@ pub use test_util::brute_force_search;
 // the latter will for example call memcmp in some situations.
 // This function is intended for our use case here, where the (prefix of the)
 // pattern is very short or empty
-fn text_has_prefix<T: Eq>(text: &[T], pattern: &[T]) -> bool {
-    longest_common_prefix_from(0, text, pattern) == pattern.len()
+fn text_has_prefix<T, F>(text: &[T], pattern: &[T], equal: &F) -> bool
+    where F: Fn(&T, &T) -> bool,
+{
+    longest_common_prefix_from(0, text, pattern, equal) == pattern.len()
 }
 
 #[test]
 #[should_panic]
 #[cfg(debug_assertions)]
 fn test_has_prefix_oob() {
-    text_has_prefix(b"abc", b"abcd");
+    text_has_prefix(b"abc", b"abcd", &PartialEq::eq);
 }
 
 #[test]
 fn test_has_prefix() {
     let data = b"some text goes here";
     for i in 0..data.len() + 1 {
-        assert!(text_has_prefix(data, &data[..i]));
+        assert!(text_has_prefix(data, &data[..i], &PartialEq::eq));
     }
 }
 
@@ -98,12 +100,14 @@ fn test_has_prefix() {
 /// pattern: aabaabaaaba
 ///              \.....x
 ///           from = 4 \ return value: from + .. = 4 + 6 = 10
-fn longest_common_prefix_from<T: Eq>(from: usize, text: &[T], pattern: &[T]) -> usize {
+fn longest_common_prefix_from<T, F>(from: usize, text: &[T], pattern: &[T], equal: &F) -> usize
+    where F: Fn(&T, &T) -> bool,
+{
     debug_assert!(pattern.len() <= text.len());
     debug_assert!(from <= pattern.len());
     let mut i = from;
     while i < pattern.len() {
-        if get!(text, i) != get!(pattern, i) { return i; }
+        if !equal(get!(text, i), get!(pattern, i)) { return i; }
         i += 1;
     }
     i
@@ -113,8 +117,8 @@ fn longest_common_prefix_from<T: Eq>(from: usize, text: &[T], pattern: &[T]) -> 
 fn test_longest_common_prefix_from() {
     let a = b"abcabcaabc";
     let b = b"abcabcabc";
-    assert_eq!(longest_common_prefix_from(0, a, b), 7);
-    assert_eq!(longest_common_prefix_from(0, a, &b[1..]), 0);
+    assert_eq!(longest_common_prefix_from(0, a, b, &PartialEq::eq), 7);
+    assert_eq!(longest_common_prefix_from(0, a, &b[1..], &PartialEq::eq), 0);
 }
 
 /// The value *k* is a “large enough integer” whose usage becomes clear below;
@@ -160,8 +164,9 @@ const GS_K: usize = 3;
 /// it just has a greater period.
 ///
 /// Compute HRP2, if the period for HRP1 is >= hrp2_period
-fn hrp<T: Eq>(mut period: usize, pattern: &[T], hrp2_period: Option<usize>)
+fn hrp_by<T, F>(mut period: usize, pattern: &[T], hrp2_period: Option<usize>, equal: &F)
     -> (Option<Hrp>, Option<Hrp>)
+    where F: Fn(&T, &T) -> bool,
 {
     let k = GS_K;
     let m = pattern.len();
@@ -171,7 +176,7 @@ fn hrp<T: Eq>(mut period: usize, pattern: &[T], hrp2_period: Option<usize>)
 
     while period + j < m {
         // find the greatest length (period + j) with the same period
-        j = longest_common_prefix_from(j, pattern, get!(pattern, period..));
+        j = longest_common_prefix_from(j, pattern, get!(pattern, period..), equal);
 
         let prefix_length = period + j;
 
@@ -224,6 +229,13 @@ fn hrp<T: Eq>(mut period: usize, pattern: &[T], hrp2_period: Option<usize>)
     (hrp1, None)
 }
 
+#[cfg(test)]
+fn hrp<T: Eq>(period: usize, pattern: &[T], hrp2_period: Option<usize>)
+    -> (Option<Hrp>, Option<Hrp>)
+{
+    hrp_by(period, pattern, hrp2_period, &PartialEq::eq)
+}
+
 #[test]
 fn test_hrp_1() {
     let s = b"aabaabaabaabaabaabbbb";
@@ -269,11 +281,13 @@ fn test_hrp_fuzz_1() {
 }
 
 #[cfg(any(test, debug_assertions))]
-fn find_k_hrp<T: Eq>(period: usize, x: &[T]) -> Option<usize> {
+fn find_k_hrp<T, F>(period: usize, x: &[T], equal: &F) -> Option<usize>
+    where F: Fn(&T, &T) -> bool,
+{
     let mut pos = 0;
     let mut period = period;
     while pos < x.len() && period < x.len() {
-        while pos + period < x.len() && x[pos] == x[pos + period] {
+        while pos + period < x.len() && equal(&x[pos], &x[pos + period]) {
             pos += 1;
         }
         if pos + period >= GS_K * period {
@@ -287,10 +301,10 @@ fn find_k_hrp<T: Eq>(period: usize, x: &[T]) -> Option<usize> {
 
 #[test]
 fn test_find_period() {
-    assert_matches!(find_k_hrp(1, b"aab"), None);
-    assert_matches!(find_k_hrp(1, b"aaab"), Some(1));
-    assert_matches!(find_k_hrp(2, b"abababac"), Some(2));
-    assert_matches!(find_k_hrp(1, b""), None);
+    assert_matches!(find_k_hrp(1, b"aab", &PartialEq::eq), None);
+    assert_matches!(find_k_hrp(1, b"aaab", &PartialEq::eq), Some(1));
+    assert_matches!(find_k_hrp(2, b"abababac", &PartialEq::eq), Some(2));
+    assert_matches!(find_k_hrp(1, b"", &PartialEq::eq), None);
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -348,9 +362,11 @@ struct Hrp {
 /// Let u = x[1 .. j] and v = x[j + 1 .. n]. Then the decomposition uv of x
 /// is k-perfect for k >= 3.
 ///
-fn decompose<T: Eq>(pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
+fn decompose_by<'a, T, F>(pattern: &'a [T], equal: &F) -> (&'a [T], &'a [T], Option<Hrp>)
+    where F: Fn(&T, &T) -> bool,
+{
     let mut j = 0;
-    let (mut hrp1_opt, mut hrp2_opt) = hrp(1, pattern, None);
+    let (mut hrp1_opt, mut hrp2_opt) = hrp_by(1, pattern, None, equal);
     loop {
         if let Some(hrp1) = hrp1_opt {
             if let Some(hrp2) = hrp2_opt {
@@ -360,8 +376,8 @@ fn decompose<T: Eq>(pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
 
                 // size is nondecreasing: so start with the HRP1(x) period.
                 // compute HRP1(x') and (if needed) HRP2(x')
-                let (h1, h2) = hrp(hrp1.period, get!(pattern, j..),
-                                   Some(hrp2.period));
+                let (h1, h2) = hrp_by(hrp1.period, get!(pattern, j..),
+                                      Some(hrp2.period), equal);
                 hrp1_opt = h1;
                 if let Some(ref hrp1) = h1 {
                     if hrp1.period >= hrp2.period {
@@ -375,8 +391,13 @@ fn decompose<T: Eq>(pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
     }
     let (a, b) = (get!(pattern, ..j), get!(pattern, j..));
     #[cfg(debug_assertions)]
-    assert_perfect_decomposition(GS_K, a, b);
+    assert_perfect_decomposition(GS_K, a, b, equal);
     (a, b, hrp1_opt)
+}
+
+#[cfg(test)]
+fn decompose<T: Eq>(pattern: &[T]) -> (&[T], &[T], Option<Hrp>) {
+    decompose_by(pattern, &PartialEq::eq)
 }
 
 #[test]
@@ -464,12 +485,14 @@ fn test_decompose_period_mega() {
 
 /// Assert that the input = u v is a perfect factorization
 #[cfg(debug_assertions)]
-fn assert_perfect_decomposition<T: Eq>(k: usize, u: &[T], v: &[T]) {
+fn assert_perfect_decomposition<T, F>(k: usize, u: &[T], v: &[T], equal: &F)
+    where F: Fn(&T, &T) -> bool,
+{
     // require that a decomp x = u v
     // that u is "short" and v is k-simple.
     // k-simple means it has at most one k-HRP which also means it has no k-HRP2
     assert!(k >= 3);
-    if let (Some(hrp1), hrp2) = hrp(1, v, None) {
+    if let (Some(hrp1), hrp2) = hrp_by(1, v, None, equal) {
         if let Some(hrp2) = hrp2 {
             panic!("Factorization u, v = {} , {} is not k-simple because
                     v's {}-HRP1 is {:?} and {}-HRP2 is {:?}",
@@ -478,9 +501,9 @@ fn assert_perfect_decomposition<T: Eq>(k: usize, u: &[T], v: &[T]) {
         }
     }
     // independent check
-    if let Some(prefix_period1) = find_k_hrp(1, v) {
+    if let Some(prefix_period1) = find_k_hrp(1, v, equal) {
         // ok, but must not have a second one, or if it has it's a multiple
-        if let Some(prefix_period2) = find_k_hrp(prefix_period1 * 2 + 1, v) {
+        if let Some(prefix_period2) = find_k_hrp(prefix_period1 * 2 + 1, v, equal) {
             assert_eq!(prefix_period2 % prefix_period1, 0);
         }
     }
@@ -492,14 +515,16 @@ fn assert_perfect_decomposition<T: Eq>(k: usize, u: &[T], v: &[T]) {
 ///
 /// `start_pos` is the position to start the search, and it is updated after
 /// the function returns with a match.
-fn search_simple<T: Eq>(text: &[T], pattern: &[T],
-                        start_pos: &mut usize,
-                        start_j: &mut usize,
-                        hrp1: &Option<Hrp>)
+fn search_simple<T, F>(text: &[T], pattern: &[T],
+                           start_pos: &mut usize,
+                           start_j: &mut usize,
+                           hrp1: &Option<Hrp>,
+                           equal: &F)
     -> Option<usize>
+    where F: Fn(&T, &T) -> bool,
 {
     debug_assert!(pattern.len() <= text.len());
-    debug_assert_eq!(hrp(1, pattern, None), (*hrp1, None));
+    debug_assert_eq!(hrp_by(1, pattern, None, &equal), (*hrp1, None));
 
     let n = text.len();
     let m = pattern.len();
@@ -529,7 +554,7 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
     let mut pos = *start_pos; // text position
     let mut j = *start_j;     // pattern position
     while pos <= n - m {
-        j = longest_common_prefix_from(j, get!(text, pos..), pattern);
+        j = longest_common_prefix_from(j, get!(text, pos..), pattern, &equal);
         let has_match = if j == m { Some(pos) } else { None };
         if has_scope && j >= scope_l && j <= scope_r {
             pos += scope_l / 2;
@@ -547,25 +572,37 @@ fn search_simple<T: Eq>(text: &[T], pattern: &[T],
     None
 }
 
-
 /// This is the Galil-Seiferas string matching algorithm.
 ///
 /// If a match exists where `pattern` is a substring of `text`, return the
 /// offset to the start of the match inside `Some(_)`. If not, return `None`.
 pub fn gs_find<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
+    gs_find_by(text, pattern, T::eq)
+}
+
+/// This is the Galil-Seiferas string matching algorithm.
+///
+/// If a match exists where `pattern` is a substring of `text`, return the
+/// offset to the start of the match inside `Some(_)`. If not, return `None`.
+///
+/// Use `equal` as the equality comparison function.
+pub fn gs_find_by<T, F>(text: &[T], pattern: &[T], equal: F) -> Option<usize>
+    where F: Fn(&T, &T) -> bool,
+{
     if pattern.len() > text.len() {
         return None;
     }
 
     // preprocess the pattern into u, v
-    let (u, v, hrp1) = decompose(pattern);
+    let (u, v, hrp1) = decompose_by(pattern, &equal);
 
     // find each occurence of v in the text; then check if u precedes it
     let (mut pos, mut j) = (0, 0);
     while let Some(i) = search_simple(get!(text, u.len()..), v,
-                                      &mut pos, &mut j, &hrp1)
+                                      &mut pos, &mut j, &hrp1,
+                                      &equal)
     {
-        if text_has_prefix(get!(text, i..), u) {
+        if text_has_prefix(get!(text, i..), u, &equal) {
             return Some(i);
         }
     }
@@ -610,7 +647,7 @@ fn test_gs_find2() {
 defmac!(assert_find_substring text, range => {
     let text = &text[..];
     let needle = &text[range.clone()];
-    assert!(text_has_prefix(&text[range.start..], needle),
+    assert!(text_has_prefix(&text[range.start..], needle, &PartialEq::eq),
             "buggy test: not a substring at {:?}", range);
     assert_eq!(Some(range.start), gs_find(text, needle));
 });
