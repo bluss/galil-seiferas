@@ -516,10 +516,10 @@ fn assert_perfect_decomposition<T, F>(k: usize, u: &[T], v: &[T], equal: &F)
 /// `start_pos` is the position to start the search, and it is updated after
 /// the function returns with a match.
 fn search_simple<T, F>(text: &[T], pattern: &[T],
-                           start_pos: &mut usize,
-                           start_j: &mut usize,
-                           hrp1: &Option<Hrp>,
-                           equal: &F)
+                       start_pos: &mut usize,
+                       start_j: &mut usize,
+                       hrp1: &Option<Hrp>,
+                       equal: &F)
     -> Option<usize>
     where F: Fn(&T, &T) -> bool,
 {
