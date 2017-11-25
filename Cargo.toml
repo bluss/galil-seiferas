@@ -21,7 +21,7 @@ unchecked-index = { version = "0.2.2" }
 
 [dev-dependencies]
 quickcheck = { version = "0.4", default-features = false }
-odds = "0.2"
+odds = "0.3"
 macro-attr = "0.2"
 newtype_derive = "0.1"
 matches = "0.1"
