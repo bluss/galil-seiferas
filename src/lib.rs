@@ -528,6 +528,8 @@ fn search_simple<T, F>(text: &[T], pattern: &[T],
 
     let n = text.len();
     let m = pattern.len();
+    debug_assert!(*start_pos <= n);
+    debug_assert!(*start_j <= m);
 
     // Consider the case where the text matches a prefix of the pattern;
     // call this prefix u, here u = pattern[..j]
@@ -589,24 +591,96 @@ pub fn gs_find<T: Eq>(text: &[T], pattern: &[T]) -> Option<usize> {
 pub fn gs_find_by<T, F>(text: &[T], pattern: &[T], equal: F) -> Option<usize>
     where F: Fn(&T, &T) -> bool,
 {
-    if pattern.len() > text.len() {
-        return None;
+    Pattern::preprocess_using(pattern, equal).find_in(text)
+}
+
+/// A preprocessed pattern.
+#[derive(Debug)]
+pub struct Pattern<'a, T: 'a, F = ()> {
+    u: &'a [T],
+    v: &'a [T],
+    hrp1: Option<Hrp>,
+    equal: F,
+}
+
+impl<'a, T, F> Pattern<'a, T, F> {
+    fn len(&self) -> usize {
+        self.u.len() + self.v.len()
     }
+}
 
-    // preprocess the pattern into u, v
-    let (u, v, hrp1) = decompose_by(pattern, &equal);
-
-    // find each occurence of v in the text; then check if u precedes it
-    let (mut pos, mut j) = (0, 0);
-    while let Some(i) = search_simple(get!(text, u.len()..), v,
-                                      &mut pos, &mut j, &hrp1,
-                                      &equal)
-    {
-        if text_has_prefix(get!(text, i..), u, &equal) {
-            return Some(i);
+impl<'a, T: Eq> Pattern<'a, T> {
+    /// Preprocess the string `pattern` so that it can be used with the
+    /// Galil-Seiferas algorithm.
+    pub fn preprocess(pattern: &'a [T]) -> Self {
+        let p = Pattern::preprocess_using(pattern, T::eq);
+        Pattern {
+            u: p.u,
+            v: p.v,
+            hrp1: p.hrp1,
+            equal: (),
         }
     }
-    None
+
+    /// If a match exists where the pattern is a substring of `text`, return the
+    /// offset to the start of the match inside `Some(_)`. If not, return
+    /// `None`.
+    pub fn find_in(&self, text: &[T]) -> Option<usize> {
+        (Pattern {
+            u: self.u,
+            v: self.v,
+            hrp1: self.hrp1,
+            equal: T::eq,
+        }).find_in(text)
+    }
+}
+
+impl<'a, T, F> Pattern<'a, T, F>
+    where F: Fn(&T, &T) -> bool,
+{
+    /// Preprocess the string `pattern` so that it can be used with the
+    /// Galil-Seiferas algorithm.
+    ///
+    /// Use `equal` as the equality comparison function.
+    pub fn preprocess_using(pattern: &'a [T], equal: F) -> Self {
+        let (u, v, hrp1) = decompose_by(pattern, &equal);
+        Pattern { u, v, hrp1, equal }
+    }
+
+    /// If a match exists where the pattern is a substring of `text`, return the
+    /// offset to the start of the match inside `Some(_)`. If not, return
+    /// `None`.
+    pub fn find_in(&self, text: &[T]) -> Option<usize> {
+        if text.len() < self.len() {
+            return None;
+        }
+
+        // This is where the Galil-Seiferas string matching algorithm is
+        // put together; the pattern was decomposed into u, v; now find each
+        // occurence of v in the text, then check if u precedes it.
+        let (u, v, hrp1) = (self.u, self.v, self.hrp1);
+        let (mut pos, mut j) = (0, 0);
+        while let Some(i) = search_simple(get!(text, u.len()..), v,
+                                          &mut pos, &mut j, &hrp1, &self.equal)
+        {
+            if text_has_prefix(get!(text, i..), u, &self.equal) {
+                return Some(i);
+            }
+        }
+        None
+    }
+}
+
+impl<'a, T, F: Copy> Copy for Pattern<'a, T, F> { }
+impl<'a, T, F: Clone> Clone for Pattern<'a, T, F> {
+    fn clone(&self) -> Self {
+        Pattern {
+            u: self.u,
+            v: self.v,
+            hrp1: self.hrp1,
+            equal: self.equal.clone(),
+        }
+    }
 }
 
 // Test that gs_find(text, pat) has the same result as str::find
@@ -631,6 +705,7 @@ fn test_gs_find_vs_str_find() {
     test_str!("aaaaaabaaab", "aaaaaabaab");
     test_str!("", "");
     test_str!("", "aaaaaa");
+    test_str!("", "aaabaaabaaabaa");
 }
 
 #[test]
