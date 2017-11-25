@@ -19,6 +19,11 @@ __ https://docs.rs/galil-seiferas/
 Recent Changes
 --------------
 
+- 0.1.5
+
+  - Add ``gs_find_by`` with custom comparator support
+  - Add struct ``Pattern`` for separate pattern preprocessing.
+
 - 0.1.4
 
   - Expression tweaks again, for the new nightly
