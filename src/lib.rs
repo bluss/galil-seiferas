@@ -52,7 +52,7 @@
 extern crate unchecked_index;
 
 /// Macro for debug-checked and release-unchecked indexing and slicing.
-/// This removes bounds checks in some critial inner loops, where it has
+/// This removes bounds checks in some critical inner loops, where it has
 /// a measurable impact.
 defmac!(get slice, index => unsafe { ::unchecked_index::get_unchecked(slice, index) });
 
